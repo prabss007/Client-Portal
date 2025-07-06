@@ -1065,7 +1065,7 @@
 
     <script>
         // IMPORTANT: Update this with your deployed Google Apps Script URL
-        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwVXLezPPRnvfXBU6k7IuwO--g7bLZZ1YLGUa3tWfUBcFBBhcAFUqLWDzJaeIUBaeyC/exec';
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby-djjeBmU6kI-DnhlQq4bKNYhAEi7or4L-fLxNdipovXMik4e8ZAmvDsUTjUFWnd3C/exec';
         
         // State Management
         let currentUser = null;
@@ -1438,99 +1438,45 @@
             });
         }
 
-  // REPLACE YOUR handleLogin FUNCTION IN GOOGLE APPS SCRIPT WITH THIS VERSION
-
-function handleLogin(data) {
-  console.log('=== LOGIN ATTEMPT ===');
-  console.log('Type:', data.type);
-  console.log('Email:', data.email);
-  console.log('Password length:', data.password ? data.password.length : 0);
-  
-  // IMPORTANT: Check login type FIRST, then credentials
-  
-  if (data.type === 'admin') {
-    // Admin login - only check admin credentials
-    console.log('Checking admin credentials...');
-    if (data.email === CONFIG.ADMIN_EMAIL && data.password === CONFIG.ADMIN_PASSWORD) {
-      console.log('✅ Admin login successful');
-      return {
-        status: 'success',
-        user: {
-          type: 'admin',
-          email: data.email,
-          name: 'Admin'
-        }
-      };
-    } else {
-      console.log('❌ Invalid admin credentials');
-      return { status: 'error', message: 'Invalid admin credentials' };
-    }
-  }
-  
-  if (data.type === 'client') {
-    // Client login - check clients sheet
-    console.log('Checking client credentials...');
-    try {
-      const sheet = SpreadsheetApp.openById(CONFIG.CLIENTS_SPREADSHEET_ID).getSheetByName('Clients');
-      if (!sheet) {
-        console.log('❌ No Clients sheet found');
-        return { status: 'error', message: 'No clients database found' };
-      }
-      
-      const values = sheet.getDataRange().getValues();
-      console.log(`Searching through ${values.length - 1} clients...`);
-      
-      // Find client by email (skip header row)
-      for (let i = 1; i < values.length; i++) {
-        const rowEmail = values[i][3] ? values[i][3].toString().trim().toLowerCase() : '';
-        const rowPassword = values[i][4] ? values[i][4].toString() : ''; // Don't trim the stored password
-        
-        if (rowEmail === data.email.trim().toLowerCase()) {
-          console.log(`Found matching email at row ${i + 1}`);
-          console.log(`Company: ${values[i][1]}`);
-          console.log(`Stored password: "${rowPassword}"`);
-          console.log(`Provided password: "${data.password}"`);
-          console.log(`Passwords match: ${rowPassword === data.password}`);
-          
-          // Compare passwords exactly as they are
-          if (rowPassword === data.password) {
-            console.log('✅ Client login successful');
+        async function handleLogin(e) {
+            e.preventDefault();
             
-            return {
-              status: 'success',
-              user: {
-                type: 'client',
-                clientId: values[i][0],
-                company: values[i][1],
-                contactName: values[i][2],
-                email: values[i][3],
-                paymentStatus: values[i][11] || 'pending',
-                packagePrice: values[i][8] || 1000,
-                stripeLink: values[i][9] || '',
-                logoUrl: values[i][5] || '',
-                bannerUrl: values[i][6] || '',
-                companyColor: values[i][7] || '#2563eb',
-                folderId: values[i][14] || ''
-              }
-            };
-          } else {
-            console.log('❌ Password mismatch');
-            return { status: 'error', message: 'Invalid password' };
-          }
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value.trim();
+            
+            debugLog(`Attempting login as ${loginType}: ${email}`, 'info');
+            showLoading('Authenticating...');
+            
+            try {
+                const response = await submitToGoogleScript({
+                    action: 'login',
+                    type: loginType,
+                    email: email,
+                    password: password
+                });
+                
+                hideLoading();
+                
+                if (response.status === 'success') {
+                    debugLog('Login successful', 'success');
+                    setSession(response.user);
+                    
+                    if (response.user.type === 'admin') {
+                        showAdminDashboard();
+                    } else {
+                        showClientPortal();
+                    }
+                } else {
+                    debugLog(`Login failed: ${response.message}`, 'error');
+                    showMessage('login-message', 'error', response.message || 'Invalid credentials');
+                }
+            } catch (error) {
+                hideLoading();
+                debugLog(`Login error: ${error.message}`, 'error');
+                showMessage('login-message', 'error', 'Login failed. Please check your connection and try again.');
+            }
         }
-      }
-      
-      console.log('❌ No matching email found');
-      return { status: 'error', message: 'Email not found' };
-      
-    } catch (error) {
-      console.error('❌ Client login error:', error.toString());
-      return { status: 'error', message: 'Database error: ' + error.toString() };
-    }
-  }
-  
-  return { status: 'error', message: 'Invalid login type' };
-}
+
         // View Management
         function showLoginPage() {
             document.getElementById('login-page').style.display = 'block';
