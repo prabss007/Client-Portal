@@ -1,0 +1,1788 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recruitment Portal</title>
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary-color: #059669;
+            --secondary-dark: #047857;
+            --accent-color: #dc2626;
+            --background-gradient: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            --company-name: "MerlinsGroup";
+            --company-tagline: "Premium Recruitment Excellence";
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f3f4f6;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            overflow: hidden;
+        }
+
+        .header {
+            background: var(--background-gradient);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        /* Login Page Styles */
+        .login-container {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .login-card {
+            background: #f8fafc;
+            padding: 40px;
+            border-radius: 15px;
+            text-align: center;
+        }
+
+        .login-type-selector {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .login-type-btn {
+            padding: 15px;
+            border: 2px solid #e5e7eb;
+            background: white;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .login-type-btn.active {
+            border-color: var(--primary-color);
+            background: #eff6ff;
+        }
+
+        .login-type-btn:hover {
+            border-color: var(--primary-color);
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin: 20px 0;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 10px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+            box-shadow: 0 5px 15px rgba(37, 99, 235, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn.secondary {
+            background: #6b7280;
+        }
+
+        .btn.secondary:hover {
+            background: #4b5563;
+        }
+
+        .btn.success {
+            background: var(--secondary-color);
+        }
+
+        .btn.success:hover {
+            background: var(--secondary-dark);
+        }
+
+        /* Admin Dashboard */
+        .admin-nav {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #e5e7eb;
+            padding-bottom: 20px;
+        }
+
+        .nav-btn {
+            padding: 10px 20px;
+            background: transparent;
+            border: none;
+            color: #6b7280;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .nav-btn.active {
+            color: var(--primary-color);
+        }
+
+        .nav-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: -22px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--primary-color);
+        }
+
+        .admin-section {
+            display: none;
+        }
+
+        .admin-section.active {
+            display: block;
+        }
+
+        /* Client Cards */
+        .client-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .client-card {
+            background: #f8fafc;
+            border: 2px solid #e5e7eb;
+            border-radius: 15px;
+            padding: 25px;
+            transition: all 0.3s ease;
+        }
+
+        .client-card:hover {
+            border-color: var(--primary-color);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .client-card h3 {
+            color: #1e293b;
+            margin-bottom: 10px;
+        }
+
+        .client-info {
+            color: #64748b;
+            font-size: 0.9em;
+            margin: 5px 0;
+        }
+
+        .client-status {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+
+        .status-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-paid {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        /* Enhanced Client Portal */
+        .client-portal-banner {
+            position: relative;
+            height: 300px;
+            background: var(--background-gradient);
+            overflow: hidden;
+        }
+
+        .client-portal-banner img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.8;
+        }
+
+        .client-portal-banner-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.7) 100%);
+            display: flex;
+            align-items: flex-end;
+            padding: 40px;
+        }
+
+        .client-portal-header-content {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            width: 100%;
+        }
+
+        .client-logo-container {
+            background: white;
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .client-logo-large {
+            height: 100px;
+            max-width: 200px;
+            object-fit: contain;
+        }
+
+        .client-info-header {
+            flex: 1;
+            color: white;
+        }
+
+        .client-info-header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            font-weight: 300;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .client-info-header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .client-portal-nav {
+            background: white;
+            padding: 20px 40px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .portal-tabs {
+            display: flex;
+            gap: 30px;
+            margin: 0;
+            border: none;
+        }
+
+        .tab-btn {
+            padding: 12px 24px;
+            background: transparent;
+            border: none;
+            color: #6b7280;
+            font-weight: 600;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .tab-btn.active {
+            color: var(--primary-color);
+        }
+
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: -20px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--primary-color);
+        }
+
+        .tab-content {
+            display: none;
+            padding: 40px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Sleek Payment Section */
+        .payment-hero {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 30px;
+            padding: 60px;
+            text-align: center;
+            color: white;
+            position: relative;
+            overflow: hidden;
+            margin: 40px 0;
+        }
+
+        .payment-hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: pulse 3s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 0.3; }
+        }
+
+        .payment-hero h2 {
+            font-size: 3em;
+            margin-bottom: 20px;
+            font-weight: 300;
+            position: relative;
+            z-index: 1;
+        }
+
+        .payment-hero p {
+            font-size: 1.3em;
+            margin-bottom: 30px;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+        .payment-amount-large {
+            font-size: 5em;
+            font-weight: bold;
+            margin: 30px 0;
+            position: relative;
+            z-index: 1;
+            text-shadow: 2px 2px 10px rgba(0,0,0,0.2);
+        }
+
+        .pay-button-large {
+            background: white;
+            color: #667eea;
+            font-size: 1.3em;
+            padding: 20px 50px;
+            border-radius: 50px;
+            position: relative;
+            z-index: 1;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .pay-button-large:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+
+        /* Documents Section - Enhanced */
+        .documents-section {
+            background: #f8fafc;
+            border-radius: 20px;
+            padding: 40px;
+            margin: 20px 0;
+        }
+
+        .upload-area {
+            border: 3px dashed #9ca3af;
+            border-radius: 20px;
+            padding: 60px;
+            text-align: center;
+            margin: 20px 0;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            background: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .upload-area:hover {
+            border-color: var(--secondary-color);
+            background: #f0fdf4;
+            transform: scale(1.02);
+        }
+
+        .upload-area::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(5, 150, 105, 0.1);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: all 0.6s ease;
+        }
+
+        .upload-area:hover::before {
+            width: 600px;
+            height: 600px;
+        }
+
+        /* CV Grid - Enhanced */
+        .cv-grid {
+            display: grid;
+            gap: 20px;
+            margin-top: 30px;
+        }
+
+        .cv-card {
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 15px;
+            padding: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cv-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(37, 99, 235, 0.05), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .cv-card:hover::before {
+            left: 100%;
+        }
+
+        .cv-card:hover {
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+            border-color: var(--primary-color);
+        }
+
+        /* Messages */
+        .message {
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            display: none;
+        }
+
+        .message.success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #10b981;
+        }
+
+        .message.error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #ef4444;
+        }
+
+        .message.info {
+            background: #dbeafe;
+            color: #1e40af;
+            border: 1px solid #3b82f6;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 40px;
+            position: relative;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #6b7280;
+        }
+
+        .modal-close:hover {
+            color: #374151;
+        }
+
+        /* Loading */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f4f6;
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Debug Console */
+        .debug-console {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #1e293b;
+            color: #10b981;
+            padding: 15px;
+            border-radius: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            max-width: 400px;
+            max-height: 200px;
+            overflow-y: auto;
+            display: none;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .debug-console.active {
+            display: block;
+        }
+
+        .debug-console h4 {
+            color: #f59e0b;
+            margin-bottom: 10px;
+        }
+
+        .debug-line {
+            margin: 5px 0;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .debug-error {
+            color: #ef4444;
+        }
+
+        .debug-success {
+            color: #10b981;
+        }
+
+        /* Image preview styles */
+        .image-preview-container {
+            margin-top: 15px;
+            display: none;
+        }
+
+        .image-preview {
+            max-width: 100%;
+            max-height: 200px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            padding: 10px;
+            background: white;
+        }
+
+        @media (max-width: 768px) {
+            .content {
+                padding: 20px;
+            }
+            
+            .client-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .login-type-selector {
+                grid-template-columns: 1fr;
+            }
+
+            .client-portal-header-content {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 20px;
+            }
+
+            .client-info-header h1 {
+                font-size: 2em;
+            }
+
+            .payment-hero {
+                padding: 40px 20px;
+            }
+
+            .payment-amount-large {
+                font-size: 3em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header" id="main-header">
+            <h1 id="portal-title">MerlinsGroup</h1>
+            <p id="portal-tagline">Premium Recruitment Excellence</p>
+        </div>
+
+        <div class="content" id="main-content">
+            <!-- Login Page -->
+            <div id="login-page">
+                <div class="login-container">
+                    <div class="login-card">
+                        <h2>Welcome Back</h2>
+                        <p style="color: #6b7280; margin: 10px 0 30px;">Select your portal to continue</p>
+                        
+                        <div class="login-type-selector">
+                            <button class="login-type-btn active" onclick="setLoginType('client')">
+                                <div style="font-size: 2em; margin-bottom: 10px;">🏢</div>
+                                <div>Client Portal</div>
+                            </button>
+                            <button class="login-type-btn" onclick="setLoginType('admin')">
+                                <div style="font-size: 2em; margin-bottom: 10px;">⚙️</div>
+                                <div>Admin Panel</div>
+                            </button>
+                        </div>
+                        
+                        <form id="login-form">
+                            <div class="form-group">
+                                <label for="email">Email Address</label>
+                                <input type="email" id="email" name="email" required 
+                                       placeholder="Enter your email address"
+                                       title="Enter your email address">
+                            </div>
+                            <div class="form-group">
+                                <label for="password">Password</label>
+                                <input type="password" id="password" name="password" required 
+                                       placeholder="Enter your password"
+                                       title="Enter your password">
+                            </div>
+                            <button type="submit" class="btn" style="width: 100%; margin-top: 20px;">
+                                Sign In
+                            </button>
+                        </form>
+                        
+                        <div id="login-message" class="message"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Admin Dashboard -->
+            <div id="admin-dashboard" style="display: none;">
+                <div style="display: flex; justify-content: between; align-items: center; margin-bottom: 30px;">
+                    <h2>Admin Dashboard</h2>
+                    <button class="btn secondary" onclick="logout()" style="margin-left: auto;">Logout</button>
+                </div>
+                
+                <div class="admin-nav">
+                    <button class="nav-btn active" onclick="showAdminSection('clients')">Clients</button>
+                    <button class="nav-btn" onclick="showAdminSection('add-client')">Add Client</button>
+                    <button class="nav-btn" onclick="showAdminSection('candidates')">Candidates</button>
+                </div>
+                
+                <!-- Clients List -->
+                <div id="clients-section" class="admin-section active">
+                    <h3>Client Management</h3>
+                    <div class="client-grid" id="clients-list">
+                        <!-- Client cards will be loaded here -->
+                    </div>
+                </div>
+                
+                <!-- Add Client Form -->
+                <div id="add-client-section" class="admin-section">
+                    <h3>Add New Client</h3>
+                    <form id="add-client-form" style="max-width: 600px;">
+                        <div class="form-group">
+                            <label for="companyName">Company Name *</label>
+                            <input type="text" id="companyName" name="companyName" required 
+                                   placeholder="Enter company name"
+                                   title="Enter the company name">
+                        </div>
+                        <div class="form-group">
+                            <label for="contactName">Contact Name *</label>
+                            <input type="text" id="contactName" name="contactName" required 
+                                   placeholder="Enter contact person's name"
+                                   title="Enter the contact person's name">
+                        </div>
+                        <div class="form-group">
+                            <label for="clientEmail">Email Address *</label>
+                            <input type="email" id="clientEmail" name="clientEmail" required 
+                                   placeholder="Enter client's email address"
+                                   title="Enter the client's email address">
+                        </div>
+                        <div class="form-group">
+                            <label for="clientPassword">Password *</label>
+                            <input type="password" id="clientPassword" name="clientPassword" required 
+                                   placeholder="Create a password for the client"
+                                   title="Create a password for the client">
+                        </div>
+                        <div class="form-group">
+                            <label for="companyLogo">Company Logo *</label>
+                            <div style="display: flex; align-items: center; gap: 15px;">
+                                <input type="file" id="companyLogo" name="companyLogo" accept="image/*" required style="display: none;" aria-label="Company Logo Upload">
+                                <button type="button" class="btn secondary" onclick="document.getElementById('companyLogo').click()">
+                                    Choose Logo
+                                </button>
+                                <span id="logo-filename" style="color: #6b7280;">No file selected</span>
+                            </div>
+                            <div id="logo-preview" class="image-preview-container">
+                                <img id="logo-preview-img" alt="Company logo preview" class="image-preview">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="companyBanner">Company Banner (Optional)</label>
+                            <div style="display: flex; align-items: center; gap: 15px;">
+                                <input type="file" id="companyBanner" name="companyBanner" accept="image/*" style="display: none;" aria-label="Company Banner Upload">
+                                <button type="button" class="btn secondary" onclick="document.getElementById('companyBanner').click()">
+                                    Choose Banner
+                                </button>
+                                <span id="banner-filename" style="color: #6b7280;">No file selected</span>
+                            </div>
+                            <p style="font-size: 0.85em; color: #6b7280; margin-top: 5px;">
+                                Recommended size: 1920x300px for best results
+                            </p>
+                            <div id="banner-preview" class="image-preview-container">
+                                <img id="banner-preview-img" alt="Company banner preview" class="image-preview">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="companyColor">Company Brand Color *</label>
+                            <div style="display: flex; align-items: center; gap: 15px;">
+                                <input type="color" id="companyColor" name="companyColor" value="#2563eb" required 
+                                       style="width: 80px; height: 40px; border: none; border-radius: 8px; cursor: pointer;"
+                                       title="Select company brand color"
+                                       aria-label="Company brand color picker">
+                                <span id="color-value" style="color: #6b7280;">#2563eb</span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="packagePrice">Package Price *</label>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span style="font-size: 1.2em; color: #6b7280;">£</span>
+                                <input type="number" id="packagePrice" name="packagePrice" required min="1" 
+                                       placeholder="1000"
+                                       title="Enter the package price in pounds">
+                            </div>
+                            <p style="font-size: 0.85em; color: #6b7280; margin-top: 5px;">
+                                A Stripe payment link will be automatically generated for this amount
+                            </p>
+                        </div>
+                        <button type="submit" class="btn" style="width: 100%; margin-top: 20px;">
+                            Create Client Account
+                        </button>
+                    </form>
+                    <div id="add-client-message" class="message"></div>
+                </div>
+                
+                <!-- Candidates List -->
+                <div id="candidates-section" class="admin-section">
+                    <h3>Candidate Database</h3>
+                    <div class="cv-grid" id="admin-candidates-list">
+                        <!-- Candidates will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Client Portal -->
+            <div id="client-portal" style="display: none;">
+                <!-- Payment Required View -->
+                <div id="payment-required" style="display: none;">
+                    <div class="payment-hero">
+                        <h2>Welcome to Your Recruitment Portal</h2>
+                        <p>Complete your payment to unlock full access to our premium recruitment services</p>
+                        <div class="payment-amount-large" id="payment-amount">£0</div>
+                        <button id="pay-button" class="btn pay-button-large">
+                            Proceed to Secure Payment
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Paid Client View -->
+                <div id="paid-client-view" style="display: none;">
+                    <!-- This content will be dynamically updated when showing client portal -->
+                </div>
+                
+                <div id="client-message" class="message"></div>
+            </div>
+
+            <!-- Loading State -->
+            <div class="loading" id="loading-state">
+                <div class="spinner"></div>
+                <h3>Processing...</h3>
+                <p id="loading-text">Please wait...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Debug Console -->
+    <div class="debug-console" id="debug-console">
+        <h4>Debug Console</h4>
+        <div id="debug-messages"></div>
+    </div>
+
+    <!-- Debug Panel -->
+    <div class="debug-panel" id="debug-panel" style="display: none;">
+        <h4>🔧 Debug Tools</h4>
+        <div class="debug-buttons">
+            <button onclick="testGoogleSheetsConnection()">Test Sheets Connection</button>
+            <button onclick="viewAllClients()">View All Clients</button>
+            <button onclick="testAddClient()">Test Add Client</button>
+            <button onclick="checkSpreadsheetURL()">Check Spreadsheet</button>
+            <button onclick="clearDebugLog()">Clear Log</button>
+        </div>
+        <div class="debug-info">
+            <p><strong>Script URL:</strong> <span id="debug-script-url" style="font-size: 11px; word-break: break-all;"></span></p>
+            <p><strong>Status:</strong> <span id="debug-status">Not tested</span></p>
+        </div>
+    </div>
+
+    <style>
+        /* Debug Panel Styles */
+        .debug-panel {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: #1e293b;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            width: 300px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            z-index: 9999;
+            font-family: monospace;
+        }
+
+        .debug-panel h4 {
+            color: #f59e0b;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+
+        .debug-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .debug-buttons button {
+            background: #374151;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background 0.3s;
+        }
+
+        .debug-buttons button:hover {
+            background: #4b5563;
+        }
+
+        .debug-info {
+            font-size: 12px;
+            color: #94a3b8;
+        }
+
+        .debug-info p {
+            margin: 5px 0;
+        }
+
+        #debug-status {
+            font-weight: bold;
+        }
+
+        .status-success {
+            color: #10b981;
+        }
+
+        .status-error {
+            color: #ef4444;
+        }
+
+        .status-testing {
+            color: #f59e0b;
+        }
+    </style>
+
+    <script>
+        // IMPORTANT: Update this with your deployed Google Apps Script URL
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz1960gqVaG8rhFqED9VquD1sZS5UzTnAkTlDBupGrVNW_nW4WzhctHNDmkeQveN9qW/exec';
+        
+        // State Management
+        let currentUser = null;
+        let loginType = 'client';
+        let uploadedDocs = [];
+        let debugMode = false;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            checkSession();
+            setupEventListeners();
+            
+            // Enable debug mode with Ctrl+D
+            document.addEventListener('keydown', function(e) {
+                if (e.ctrlKey && e.key === 'd') {
+                    e.preventDefault();
+                    toggleDebugMode();
+                }
+            });
+            
+            // Verify Google Script connection on load
+            verifyConnection();
+        });
+
+        // Verify connection to Google Apps Script
+        async function verifyConnection() {
+            try {
+                const response = await fetch(GOOGLE_SCRIPT_URL);
+                const text = await response.text();
+                
+                if (text.includes('✅')) {
+                    console.log('✅ Connected to Google Apps Script:', text);
+                } else {
+                    console.warn('⚠️ Unexpected response from Google Apps Script:', text);
+                    console.log('Make sure you have deployed the script and updated the URL');
+                }
+            } catch (error) {
+                console.error('❌ Cannot connect to Google Apps Script:', error);
+                console.log('Steps to fix:');
+                console.log('1. Deploy your Google Apps Script');
+                console.log('2. Update GOOGLE_SCRIPT_URL in this file');
+                console.log('3. Make sure the script has "Anyone" access');
+            }
+        }
+
+        function setupEventListeners() {
+            // Login form
+            document.getElementById('login-form').addEventListener('submit', handleLogin);
+            
+            // Add client form
+            document.getElementById('add-client-form').addEventListener('submit', handleAddClient);
+            
+            // Document upload
+            document.getElementById('doc-file-input').addEventListener('change', handleDocUpload);
+            
+            // Logo upload preview
+            document.getElementById('companyLogo').addEventListener('change', handleLogoPreview);
+            
+            // Banner upload preview
+            document.getElementById('companyBanner').addEventListener('change', handleBannerPreview);
+            
+            // Color picker
+            document.getElementById('companyColor').addEventListener('input', function(e) {
+                document.getElementById('color-value').textContent = e.target.value;
+            });
+        }
+
+        // Debug Functions
+        function toggleDebugMode() {
+            debugMode = !debugMode;
+            document.getElementById('debug-console').classList.toggle('active', debugMode);
+            document.getElementById('debug-panel').style.display = debugMode ? 'block' : 'none';
+            if (debugMode) {
+                debugLog('Debug mode enabled', 'success');
+                document.getElementById('debug-script-url').textContent = GOOGLE_SCRIPT_URL;
+            }
+        }
+
+        function debugLog(message, type = 'info') {
+            console.log(`[${type}] ${message}`);
+            
+            if (!debugMode) return;
+            
+            const debugMessages = document.getElementById('debug-messages');
+            const debugLine = document.createElement('div');
+            debugLine.className = `debug-line debug-${type}`;
+            const timestamp = new Date().toLocaleTimeString();
+            debugLine.textContent = `[${timestamp}] ${message}`;
+            debugMessages.appendChild(debugLine);
+            debugMessages.scrollTop = debugMessages.scrollHeight;
+        }
+
+        // Debug Tool Functions
+        async function testGoogleSheetsConnection() {
+            updateDebugStatus('Testing connection...', 'testing');
+            debugLog('Testing Google Sheets connection...', 'info');
+            
+            try {
+                const response = await fetch(GOOGLE_SCRIPT_URL);
+                const text = await response.text();
+                
+                if (text.includes('✅')) {
+                    updateDebugStatus('Connected!', 'success');
+                    debugLog(`Success: ${text}`, 'success');
+                    
+                    // Also test POST
+                    const postResponse = await fetch(GOOGLE_SCRIPT_URL, {
+                        method: 'POST',
+                        body: JSON.stringify({ action: 'test' })
+                    });
+                    const postText = await postResponse.text();
+                    debugLog(`POST test response: ${postText}`, 'info');
+                } else {
+                    updateDebugStatus('Connection issue', 'error');
+                    debugLog(`Unexpected response: ${text}`, 'error');
+                }
+            } catch (error) {
+                updateDebugStatus('Connection failed', 'error');
+                debugLog(`Connection error: ${error.message}`, 'error');
+            }
+        }
+
+        async function viewAllClients() {
+            debugLog('Fetching all clients...', 'info');
+            
+            try {
+                const response = await submitToGoogleScript({ action: 'getClients' });
+                
+                if (response.status === 'success') {
+                    debugLog(`Found ${response.clients.length} clients`, 'success');
+                    
+                    if (response.clients.length === 0) {
+                        debugLog('No clients in database yet', 'info');
+                    } else {
+                        console.table(response.clients);
+                        response.clients.forEach((client, index) => {
+                            debugLog(`Client ${index + 1}: ${client.company} (${client.email})`, 'info');
+                        });
+                    }
+                } else {
+                    debugLog(`Error: ${response.message}`, 'error');
+                }
+            } catch (error) {
+                debugLog(`Failed to fetch clients: ${error.message}`, 'error');
+            }
+        }
+
+        async function testAddClient() {
+            debugLog('Testing client creation...', 'info');
+            
+            const testClient = {
+                action: 'addClient',
+                companyName: 'Debug Test Company ' + Date.now(),
+                contactName: 'Debug Test',
+                email: 'debug' + Date.now() + '@test.com',
+                password: 'test123',
+                packagePrice: 1000,
+                companyColor: '#ff0000'
+            };
+            
+            debugLog(`Creating test client: ${testClient.companyName}`, 'info');
+            
+            try {
+                const response = await submitToGoogleScript(testClient);
+                
+                if (response.status === 'success') {
+                    debugLog('✅ Test client created successfully!', 'success');
+                    debugLog(`Client ID: ${response.clientId}`, 'info');
+                    debugLog(`Stripe Link: ${response.stripeLink}`, 'info');
+                    
+                    // Verify by fetching all clients
+                    setTimeout(() => viewAllClients(), 1000);
+                } else {
+                    debugLog(`❌ Failed: ${response.message}`, 'error');
+                    if (response.details) {
+                        debugLog(`Details: ${response.details}`, 'error');
+                    }
+                }
+            } catch (error) {
+                debugLog(`❌ Error: ${error.message}`, 'error');
+            }
+        }
+
+        function checkSpreadsheetURL() {
+            const spreadsheetId = '1GYudQCnkE2aWtRl-hYtDHggv08Mtn3U7rTLmjv5kSfI';
+            const url = `https://docs.google.com/spreadsheets/d/${spreadsheetId}/edit`;
+            
+            debugLog(`Spreadsheet URL: ${url}`, 'info');
+            debugLog('Opening spreadsheet in new tab...', 'info');
+            
+            window.open(url, '_blank');
+        }
+
+        function clearDebugLog() {
+            document.getElementById('debug-messages').innerHTML = '';
+            debugLog('Debug log cleared', 'info');
+        }
+
+        function updateDebugStatus(message, type) {
+            const statusEl = document.getElementById('debug-status');
+            statusEl.textContent = message;
+            statusEl.className = `status-${type}`;
+        }
+
+        // Session Management
+        function checkSession() {
+            const session = sessionStorage.getItem('recruitment_session');
+            if (session) {
+                currentUser = JSON.parse(session);
+                debugLog(`Session found: ${currentUser.type}`, 'success');
+                if (currentUser.type === 'admin') {
+                    showAdminDashboard();
+                } else {
+                    showClientPortal();
+                }
+            }
+        }
+
+        function setSession(user) {
+            currentUser = user;
+            sessionStorage.setItem('recruitment_session', JSON.stringify(user));
+            debugLog(`Session set: ${user.type}`, 'success');
+        }
+
+        function logout() {
+            sessionStorage.removeItem('recruitment_session');
+            currentUser = null;
+            
+            // Reset to default colors
+            document.documentElement.style.setProperty('--primary-color', '#2563eb');
+            document.documentElement.style.setProperty('--primary-dark', '#1d4ed8');
+            
+            debugLog('Logged out', 'success');
+            showLoginPage();
+        }
+
+        // Login Functions
+        function setLoginType(type) {
+            loginType = type;
+            document.querySelectorAll('.login-type-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.textContent.includes(type === 'admin' ? 'Admin' : 'Client'));
+            });
+        }
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            debugLog(`Attempting login as ${loginType}: ${email}`, 'info');
+            showLoading('Authenticating...');
+            
+            try {
+                const response = await submitToGoogleScript({
+                    action: 'login',
+                    type: loginType,
+                    email: email,
+                    password: password
+                });
+                
+                hideLoading();
+                
+                if (response.status === 'success') {
+                    debugLog('Login successful', 'success');
+                    setSession(response.user);
+                    
+                    if (response.user.type === 'admin') {
+                        showAdminDashboard();
+                    } else {
+                        showClientPortal();
+                    }
+                } else {
+                    debugLog(`Login failed: ${response.message}`, 'error');
+                    showMessage('login-message', 'error', response.message || 'Invalid credentials');
+                }
+            } catch (error) {
+                hideLoading();
+                debugLog(`Login error: ${error.message}`, 'error');
+                showMessage('login-message', 'error', 'Login failed. Please try again.');
+            }
+        }
+
+        // View Management
+        function showLoginPage() {
+            document.getElementById('login-page').style.display = 'block';
+            document.getElementById('admin-dashboard').style.display = 'none';
+            document.getElementById('client-portal').style.display = 'none';
+            document.getElementById('main-header').style.display = 'block';
+            document.getElementById('main-content').style.padding = '40px';
+        }
+
+        function showAdminDashboard() {
+            document.getElementById('login-page').style.display = 'none';
+            document.getElementById('admin-dashboard').style.display = 'block';
+            document.getElementById('client-portal').style.display = 'none';
+            document.getElementById('main-header').style.display = 'block';
+            document.getElementById('main-content').style.padding = '40px';
+            loadClients();
+            loadCandidates();
+        }
+
+        function showClientPortal() {
+            document.getElementById('login-page').style.display = 'none';
+            document.getElementById('admin-dashboard').style.display = 'none';
+            document.getElementById('client-portal').style.display = 'block';
+            document.getElementById('main-header').style.display = 'none';
+            document.getElementById('main-content').style.padding = '0';
+            
+            // Apply custom color
+            if (currentUser.companyColor) {
+                document.documentElement.style.setProperty('--primary-color', currentUser.companyColor);
+                document.documentElement.style.setProperty('--primary-dark', adjustColor(currentUser.companyColor, -20));
+            }
+            
+            // Show appropriate view based on payment status
+            if (currentUser.paymentStatus === 'paid') {
+                document.getElementById('payment-required').style.display = 'none';
+                document.getElementById('paid-client-view').style.display = 'block';
+                createPaidClientView();
+            } else {
+                document.getElementById('payment-required').style.display = 'block';
+                document.getElementById('paid-client-view').style.display = 'none';
+                document.getElementById('payment-amount').textContent = `£${currentUser.packagePrice}`;
+                document.getElementById('pay-button').onclick = () => {
+                    window.open(currentUser.stripeLink, '_blank');
+                    showMessage('client-message', 'info', 'Complete payment in the new window. Refresh this page after payment.');
+                };
+            }
+        }
+
+        // Create the enhanced client portal view
+        function createPaidClientView() {
+            const paidView = document.getElementById('paid-client-view');
+            
+            paidView.innerHTML = `
+                <!-- Client Portal Banner -->
+                <div class="client-portal-banner">
+                    ${currentUser.bannerBase64 ? 
+                        `<img src="${currentUser.bannerBase64}" alt="Company Banner">` : 
+                        ''
+                    }
+                    <div class="client-portal-banner-overlay">
+                        <div class="client-portal-header-content">
+                            ${currentUser.logoBase64 ? 
+                                `<div class="client-logo-container">
+                                    <img src="${currentUser.logoBase64}" alt="Company Logo" class="client-logo-large">
+                                </div>` : 
+                                ''
+                            }
+                            <div class="client-info-header">
+                                <h1>${currentUser.company}</h1>
+                                <p>Welcome back, ${currentUser.contactName}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="client-portal-nav">
+                    <div class="portal-tabs">
+                        <button class="tab-btn active" onclick="showTab('documents')">Documents</button>
+                        <button class="tab-btn" onclick="showTab('candidates')">Candidate CVs</button>
+                        <button class="tab-btn" onclick="showTab('invoice')">Invoice</button>
+                    </div>
+                    <button class="btn secondary" onclick="logout()">Logout</button>
+                </div>
+                
+                <!-- Documents Tab -->
+                <div id="documents-tab" class="tab-content active">
+                    <div class="documents-section">
+                        <h3>Upload Job Requirements</h3>
+                        <p style="color: #6b7280; margin-bottom: 20px;">
+                            Upload your job descriptions and requirements for our recruitment team
+                        </p>
+                        <div class="upload-area" onclick="triggerDocUpload()">
+                            <div style="font-size: 3em; color: #9ca3af; margin-bottom: 15px; position: relative; z-index: 1;">📤</div>
+                            <h4 style="position: relative; z-index: 1;">Upload Documents</h4>
+                            <p style="color: #6b7280; position: relative; z-index: 1;">Click here or drag and drop files</p>
+                            <p style="font-size: 0.9em; color: #9ca3af; margin-top: 10px; position: relative; z-index: 1;">
+                                Supported formats: PDF, DOC, DOCX (Max 10MB)
+                            </p>
+                        </div>
+                        <input type="file" id="doc-file-input" accept=".pdf,.doc,.docx" multiple 
+                               style="display: none;"
+                               title="Upload job requirement documents"
+                               aria-label="Upload job requirement documents">
+                        
+                        <div id="uploaded-docs" style="margin-top: 30px;">
+                            <!-- Uploaded documents will appear here -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Candidates Tab -->
+                <div id="candidates-tab" class="tab-content">
+                    <h3>Candidate Database</h3>
+                    <p style="color: #6b7280; margin-bottom: 20px;">
+                        Browse and download candidate CVs matched for your requirements
+                    </p>
+                    <div class="cv-grid" id="client-candidates-list">
+                        <!-- Candidates will be loaded here -->
+                    </div>
+                </div>
+                
+                <!-- Invoice Tab -->
+                <div id="invoice-tab" class="tab-content">
+                    <div style="max-width: 800px; margin: 0 auto;">
+                        <div style="background: #f8fafc; padding: 40px; border-radius: 15px;">
+                            <div style="text-align: center; margin-bottom: 40px;">
+                                <h2>INVOICE</h2>
+                                <p style="color: #6b7280;">Invoice #<span id="invoice-number">INV-001</span></p>
+                                <p style="color: #6b7280;">Date: <span id="invoice-date"></span></p>
+                            </div>
+                            
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-bottom: 40px;">
+                                <div>
+                                    <h4 style="color: #6b7280; margin-bottom: 10px;">FROM</h4>
+                                    <p><strong>MerlinsGroup</strong></p>
+                                    <p>Premium Recruitment Excellence</p>
+                                    <p>007prabs@gmail.com</p>
+                                </div>
+                                <div>
+                                    <h4 style="color: #6b7280; margin-bottom: 10px;">BILL TO</h4>
+                                    <p><strong id="invoice-company">${currentUser.company}</strong></p>
+                                    <p id="invoice-contact">${currentUser.contactName}</p>
+                                    <p id="invoice-email">${currentUser.email}</p>
+                                </div>
+                            </div>
+                            
+                            <table style="width: 100%; border-collapse: collapse;">
+                                <thead>
+                                    <tr style="border-bottom: 2px solid #e5e7eb;">
+                                        <th style="text-align: left; padding: 15px 0;">Description</th>
+                                        <th style="text-align: right; padding: 15px 0;">Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td style="padding: 20px 0;">Recruitment Services Package</td>
+                                        <td style="text-align: right; padding: 20px 0;">£${currentUser.packagePrice}</td>
+                                    </tr>
+                                </tbody>
+                                <tfoot>
+                                    <tr style="border-top: 2px solid #e5e7eb;">
+                                        <td style="padding: 20px 0; font-weight: bold;">Total</td>
+                                        <td style="text-align: right; padding: 20px 0; font-weight: bold;">£${currentUser.packagePrice}</td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                            
+                            <div style="margin-top: 40px; text-align: center;">
+                                <button class="btn" onclick="window.print()">Print Invoice</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Set invoice details
+            document.getElementById('invoice-date').textContent = new Date().toLocaleDateString();
+            document.getElementById('invoice-number').textContent = `INV-${Date.now().toString().slice(-6)}`;
+            
+            // Load client data
+            loadClientData();
+        }
+
+        // Helper function to darken color
+        function adjustColor(color, amount) {
+            const num = parseInt(color.replace('#', ''), 16);
+            const r = Math.max(0, (num >> 16) + amount);
+            const g = Math.max(0, ((num >> 8) & 0x00FF) + amount);
+            const b = Math.max(0, (num & 0x0000FF) + amount);
+            return '#' + (0x1000000 + r * 0x10000 + g * 0x100 + b).toString(16).slice(1);
+        }
+
+        // Admin Functions
+        function showAdminSection(section) {
+            document.querySelectorAll('.admin-section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            
+            document.getElementById(`${section}-section`).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Logo preview handler
+        function handleLogoPreview(e) {
+            handleImagePreview(e, 'logo', 2);
+        }
+
+        // Banner preview handler
+        function handleBannerPreview(e) {
+            handleImagePreview(e, 'banner', 5);
+        }
+
+        // Generic image preview handler
+        function handleImagePreview(e, type, maxSizeMB) {
+            const file = e.target.files[0];
+            if (file) {
+                // Check file size
+                if (file.size > maxSizeMB * 1024 * 1024) {
+                    showMessage('add-client-message', 'error', `${type.charAt(0).toUpperCase() + type.slice(1)} file too large. Maximum size is ${maxSizeMB}MB.`);
+                    e.target.value = '';
+                    return;
+                }
+                
+                // Update filename display
+                document.getElementById(`${type}-filename`).textContent = file.name;
+                
+                // Show preview
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById(`${type}-preview-img`).src = e.target.result;
+                    document.getElementById(`${type}-preview`).style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        async function handleAddClient(e) {
+            e.preventDefault();
+            
+            debugLog('Adding new client...', 'info');
+            showLoading('Creating client account...');
+            
+            const formData = new FormData(e.target);
+            const logoFile = document.getElementById('companyLogo').files[0];
+            const bannerFile = document.getElementById('companyBanner').files[0];
+            
+            // Convert images to base64
+            let logoBase64 = '';
+            if (logoFile) {
+                logoBase64 = await new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => resolve(e.target.result);
+                    reader.readAsDataURL(logoFile);
+                });
+            }
+            
+            let bannerBase64 = '';
+            if (bannerFile) {
+                bannerBase64 = await new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => resolve(e.target.result);
+                    reader.readAsDataURL(bannerFile);
+                });
+            }
+            
+            const clientData = {
+                action: 'addClient',
+                companyName: formData.get('companyName'),
+                contactName: formData.get('contactName'),
+                email: formData.get('clientEmail'),
+                password: formData.get('clientPassword'),
+                logoBase64: logoBase64,
+                bannerBase64: bannerBase64,
+                companyColor: formData.get('companyColor'),
+                packagePrice: formData.get('packagePrice'),
+                paymentStatus: 'pending',
+                timestamp: new Date().toISOString()
+            };
+            
+            debugLog(`Client data prepared: ${clientData.companyName}`, 'info');
+            
+            try {
+                const response = await submitToGoogleScript(clientData);
+                hideLoading();
+                
+                if (response.status === 'success') {
+                    debugLog('Client created successfully', 'success');
+                    showMessage('add-client-message', 'success', 
+                        `Client account created successfully! Payment link: ${response.stripeLink}`);
+                    e.target.reset();
+                    document.getElementById('logo-preview').style.display = 'none';
+                    document.getElementById('banner-preview').style.display = 'none';
+                    document.getElementById('logo-filename').textContent = 'No file selected';
+                    document.getElementById('banner-filename').textContent = 'No file selected';
+                    document.getElementById('color-value').textContent = '#2563eb';
+                    
+                    // Reload clients after a delay
+                    setTimeout(() => loadClients(), 2000);
+                } else {
+                    debugLog(`Failed to create client: ${response.message}`, 'error');
+                    showMessage('add-client-message', 'error', response.message || 'Failed to create client account.');
+                }
+            } catch (error) {
+                hideLoading();
+                debugLog(`Error creating client: ${error.message}`, 'error');
+                showMessage('add-client-message', 'error', 'Failed to create client account. Please try again.');
+            }
+        }
+
+        async function loadClients() {
+            debugLog('Loading clients...', 'info');
+            
+            try {
+                const response = await submitToGoogleScript({
+                    action: 'getClients'
+                });
+                
+                if (response.status === 'success') {
+                    debugLog(`Loaded ${response.clients.length} clients`, 'success');
+                    
+                    const clientsList = document.getElementById('clients-list');
+                    
+                    if (response.clients.length === 0) {
+                        clientsList.innerHTML = '<p style="text-align: center; color: #6b7280; padding: 40px;">No clients yet. Add your first client!</p>';
+                    } else {
+                        clientsList.innerHTML = response.clients.map(client => `
+                            <div class="client-card">
+                                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                                    <div style="width: 20px; height: 20px; background: ${client.companyColor}; border-radius: 4px;"></div>
+                                    <h3>${client.company}</h3>
+                                </div>
+                                <p class="client-info">Contact: ${client.contact}</p>
+                                <p class="client-info">Email: ${client.email}</p>
+                                <p class="client-info">Package: £${client.packagePrice}</p>
+                                <p class="client-info">Logo: ${client.hasLogo ? '✅ Uploaded' : '❌ Not uploaded'}</p>
+                                <p class="client-info">Banner: ${client.hasBanner ? '✅ Uploaded' : '❌ Not uploaded'}</p>
+                                <span class="client-status status-${client.status}">${client.status.toUpperCase()}</span>
+                            </div>
+                        `).join('');
+                    }
+                } else {
+                    debugLog('Failed to load clients', 'error');
+                }
+            } catch (error) {
+                debugLog(`Error loading clients: ${error.message}`, 'error');
+            }
+        }
+
+        async function loadCandidates() {
+            debugLog('Loading candidates...', 'info');
+            
+            try {
+                const response = await submitToGoogleScript({
+                    action: 'getCandidates'
+                });
+                
+                if (response.status === 'success') {
+                    debugLog(`Loaded ${response.candidates.length} candidates`, 'success');
+                    
+                    const candidatesList = document.getElementById('admin-candidates-list');
+                    
+                    if (response.candidates.length === 0) {
+                        candidatesList.innerHTML = '<p style="text-align: center; color: #6b7280; padding: 40px;">No candidates yet.</p>';
+                    } else {
+                        candidatesList.innerHTML = response.candidates.map(candidate => `
+                            <div class="cv-card">
+                                <div class="cv-info">
+                                    <h4>${candidate.name}</h4>
+                                    <p>${candidate.currentRole} • ${candidate.experience}</p>
+                                    <p style="font-size: 0.85em;">${candidate.skills}</p>
+                                </div>
+                                <div class="cv-actions">
+                                    <button class="btn" onclick="viewCV('${candidate.name}')">View CV</button>
+                                </div>
+                            </div>
+                        `).join('');
+                    }
+                }
+            } catch (error) {
+                debugLog(`Error loading candidates: ${error.message}`, 'error');
+            }
+        }
+
+        // Client Portal Functions
+        function showTab(tabName) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(`${tabName}-tab`).classList.add('active');
+        }
+
+        function loadClientData() {
+            // Load candidates for client view
+            loadCandidates().then(() => {
+                // Copy candidates to client view
+                const clientCandidatesList = document.getElementById('client-candidates-list');
+                clientCandidatesList.innerHTML = document.getElementById('admin-candidates-list').innerHTML;
+            });
+        }
+
+        function triggerDocUpload() {
+            document.getElementById('doc-file-input').click();
+        }
+
+        function handleDocUpload(e) {
+            const files = Array.from(e.target.files);
+            
+            files.forEach(file => {
+                if (file.size > 10 * 1024 * 1024) {
+                    showMessage('client-message', 'error', `${file.name} is too large. Max size is 10MB.`);
+                    return;
+                }
+                
+                uploadedDocs.push(file);
+                displayUploadedDoc(file);
+            });
+        }
+
+        function displayUploadedDoc(file) {
+            const docsContainer = document.getElementById('uploaded-docs');
+            if (!docsContainer.querySelector('h4')) {
+                docsContainer.innerHTML = '<h4 style="margin-bottom: 15px;">Uploaded Documents</h4>';
+            }
+            
+            const docElement = document.createElement('div');
+            docElement.className = 'cv-card';
+            docElement.innerHTML = `
+                <div class="cv-info">
+                    <h4>📄 ${file.name}</h4>
+                    <p>${(file.size / 1024).toFixed(1)} KB</p>
+                </div>
+                <div class="cv-actions">
+                    <button class="btn secondary" onclick="removeDoc('${file.name}')">Remove</button>
+                </div>
+            `;
+            docsContainer.appendChild(docElement);
+        }
+
+        function removeDoc(fileName) {
+            uploadedDocs = uploadedDocs.filter(doc => doc.name !== fileName);
+            event.target.closest('.cv-card').remove();
+        }
+
+        function viewCV(candidateName) {
+            alert(`Opening CV for ${candidateName}`);
+            // In production, download CV from Google Drive
+        }
+
+        // Helper Functions
+        async function submitToGoogleScript(data) {
+            debugLog(`Submitting to Google Script: ${data.action}`, 'info');
+            
+            try {
+                const response = await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'text/plain',
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const text = await response.text();
+                debugLog(`Response received`, 'info');
+                
+                try {
+                    const result = JSON.parse(text);
+                    debugLog(`Parsed response: ${JSON.stringify(result)}`, 'success');
+                    return result;
+                } catch (parseError) {
+                    debugLog(`Parse error: ${parseError.message}`, 'error');
+                    throw new Error('Invalid response from server');
+                }
+            } catch (error) {
+                debugLog(`Request failed: ${error.message}`, 'error');
+                throw error;
+            }
+        }
+
+        function showLoading(text) {
+            document.getElementById('loading-text').textContent = text;
+            document.getElementById('loading-state').classList.add('active');
+        }
+
+        function hideLoading() {
+            document.getElementById('loading-state').classList.remove('active');
+        }
+
+        function showMessage(elementId, type, text) {
+            const messageEl = document.getElementById(elementId);
+            messageEl.className = `message ${type}`;
+            messageEl.textContent = text;
+            messageEl.style.display = 'block';
+            
+            setTimeout(() => {
+                messageEl.style.display = 'none';
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
