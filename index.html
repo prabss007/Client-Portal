@@ -62,6 +62,27 @@
             padding: 40px;
         }
 
+        /* Payment Success Page */
+        .payment-success-container {
+            max-width: 600px;
+            margin: 0 auto;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .success-icon {
+            font-size: 5em;
+            color: var(--secondary-color);
+            margin-bottom: 20px;
+            animation: checkmark 0.8s ease;
+        }
+
+        @keyframes checkmark {
+            0% { transform: scale(0) rotate(45deg); }
+            50% { transform: scale(1.2) rotate(45deg); }
+            100% { transform: scale(1) rotate(0deg); }
+        }
+
         /* Login Page Styles */
         .login-container {
             max-width: 400px;
@@ -475,6 +496,11 @@
             transform: scale(1.02);
         }
 
+        .upload-area.dragover {
+            border-color: var(--secondary-color);
+            background: #f0fdf4;
+        }
+
         .upload-area::before {
             content: '';
             position: absolute;
@@ -679,6 +705,27 @@
             background: white;
         }
 
+        /* Upload progress */
+        .upload-progress {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e5e7eb;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--secondary-color);
+            transition: width 0.3s ease;
+            border-radius: 4px;
+        }
+
         @media (max-width: 768px) {
             .content {
                 padding: 20px;
@@ -720,6 +767,21 @@
         </div>
 
         <div class="content" id="main-content">
+            <!-- Payment Success Page -->
+            <div id="payment-success-page" style="display: none;">
+                <div class="payment-success-container">
+                    <div class="success-icon">✓</div>
+                    <h2>Payment Successful!</h2>
+                    <p style="margin: 20px 0; color: #6b7280;">
+                        Thank you for your payment. Your account is being activated...
+                    </p>
+                    <div class="loading active">
+                        <div class="spinner"></div>
+                        <p>Confirming payment and accessing your portal...</p>
+                    </div>
+                </div>
+            </div>
+
             <!-- Login Page -->
             <div id="login-page">
                 <div class="login-container">
@@ -922,6 +984,7 @@
             <button onclick="viewAllClients()">View All Clients</button>
             <button onclick="testAddClient()">Test Add Client</button>
             <button onclick="checkSpreadsheetURL()">Check Spreadsheet</button>
+            <button onclick="simulatePaymentSuccess()">Simulate Payment Success</button>
             <button onclick="clearDebugLog()">Clear Log</button>
         </div>
         <div class="debug-info">
@@ -1002,7 +1065,7 @@
 
     <script>
         // IMPORTANT: Update this with your deployed Google Apps Script URL
-        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz1960gqVaG8rhFqED9VquD1sZS5UzTnAkTlDBupGrVNW_nW4WzhctHNDmkeQveN9qW/exec';
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx_YJpO3INLEPDzkTK2_GjqoQZZfrIeQTYs_ut6X2CluCq-d8azBMk1JZhKm4yxG9WF/exec';
         
         // State Management
         let currentUser = null;
@@ -1012,6 +1075,10 @@
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
+            // Check for payment success redirect FIRST
+            handlePaymentRedirect();
+            
+            // Then check session
             checkSession();
             setupEventListeners();
             
@@ -1026,6 +1093,65 @@
             // Verify Google Script connection on load
             verifyConnection();
         });
+
+        // Handle payment success redirect
+        async function handlePaymentRedirect() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const paymentStatus = urlParams.get('payment');
+            const clientId = urlParams.get('client');
+            
+            if ((paymentStatus === 'success' || paymentStatus === 'simulate') && clientId) {
+                debugLog(`Payment redirect detected: ${paymentStatus} for client: ${clientId}`, 'info');
+                
+                // Show payment success page
+                document.getElementById('login-page').style.display = 'none';
+                document.getElementById('admin-dashboard').style.display = 'none';
+                document.getElementById('payment-success-page').style.display = 'block';
+                
+                // Confirm payment with server
+                try {
+                    const response = await submitToGoogleScript({
+                        action: 'confirmPayment',
+                        clientId: clientId
+                    });
+                    
+                    if (response.status === 'success') {
+                        debugLog('Payment confirmed successfully', 'success');
+                        
+                        // Set session with the returned user data
+                        setSession(response.user);
+                        
+                        // Show success message
+                        const successPage = document.getElementById('payment-success-page');
+                        successPage.querySelector('h2').textContent = 'Payment Confirmed!';
+                        successPage.querySelector('p').textContent = `Welcome ${response.user.company}! Redirecting to your portal...`;
+                        
+                        // Wait a moment then redirect to portal
+                        setTimeout(() => {
+                            document.getElementById('payment-success-page').style.display = 'none';
+                            showClientPortal();
+                            
+                            // Clear URL parameters
+                            window.history.replaceState({}, document.title, window.location.pathname);
+                        }, 2000);
+                    } else {
+                        throw new Error(response.message || 'Payment confirmation failed');
+                    }
+                } catch (error) {
+                    debugLog(`Payment confirmation error: ${error.message}`, 'error');
+                    
+                    // Show error but offer manual login
+                    const successPage = document.getElementById('payment-success-page');
+                    successPage.querySelector('.loading').innerHTML = `
+                        <div style="color: #dc2626;">
+                            <p>There was an issue confirming your payment automatically.</p>
+                            <p style="margin-top: 10px;">Please login manually to access your portal.</p>
+                            <button class="btn" onclick="location.reload()">Go to Login</button>
+                        </div>
+                    `;
+                }
+            }
+        }
 
         // Verify connection to Google Apps Script
         async function verifyConnection() {
@@ -1056,7 +1182,15 @@
             document.getElementById('add-client-form').addEventListener('submit', handleAddClient);
             
             // Document upload
-            document.getElementById('doc-file-input').addEventListener('change', handleDocUpload);
+            const docInput = document.createElement('input');
+            docInput.type = 'file';
+            docInput.id = 'doc-file-input';
+            docInput.accept = '.pdf,.doc,.docx';
+            docInput.multiple = true;
+            docInput.style.display = 'none';
+            document.body.appendChild(docInput);
+            
+            docInput.addEventListener('change', handleDocUpload);
             
             // Logo upload preview
             document.getElementById('companyLogo').addEventListener('change', handleLogoPreview);
@@ -1068,6 +1202,45 @@
             document.getElementById('companyColor').addEventListener('input', function(e) {
                 document.getElementById('color-value').textContent = e.target.value;
             });
+        }
+
+        // Setup drag and drop for documents
+        function setupDragAndDrop() {
+            const uploadArea = document.querySelector('.upload-area');
+            if (!uploadArea) return;
+            
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                uploadArea.addEventListener(eventName, preventDefaults, false);
+            });
+            
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            
+            ['dragenter', 'dragover'].forEach(eventName => {
+                uploadArea.addEventListener(eventName, highlight, false);
+            });
+            
+            ['dragleave', 'drop'].forEach(eventName => {
+                uploadArea.addEventListener(eventName, unhighlight, false);
+            });
+            
+            function highlight(e) {
+                uploadArea.classList.add('dragover');
+            }
+            
+            function unhighlight(e) {
+                uploadArea.classList.remove('dragover');
+            }
+            
+            uploadArea.addEventListener('drop', handleDrop, false);
+            
+            function handleDrop(e) {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                handleDocUploadFiles(files);
+            }
         }
 
         // Debug Functions
@@ -1114,7 +1287,8 @@
                         body: JSON.stringify({ action: 'test' })
                     });
                     const postText = await postResponse.text();
-                    debugLog(`POST test response: ${postText}`, 'info');
+                    const postData = JSON.parse(postText);
+                    debugLog(`POST test response: ${postData.message}`, 'info');
                 } else {
                     updateDebugStatus('Connection issue', 'error');
                     debugLog(`Unexpected response: ${text}`, 'error');
@@ -1139,7 +1313,7 @@
                     } else {
                         console.table(response.clients);
                         response.clients.forEach((client, index) => {
-                            debugLog(`Client ${index + 1}: ${client.company} (${client.email})`, 'info');
+                            debugLog(`Client ${index + 1}: ${client.company} (${client.email}) - ${client.status}`, 'info');
                         });
                     }
                 } else {
@@ -1160,7 +1334,9 @@
                 email: 'debug' + Date.now() + '@test.com',
                 password: 'test123',
                 packagePrice: 1000,
-                companyColor: '#ff0000'
+                companyColor: '#ff0000',
+                logoBase64: '',
+                bannerBase64: ''
             };
             
             debugLog(`Creating test client: ${testClient.companyName}`, 'info');
@@ -1194,6 +1370,18 @@
             debugLog('Opening spreadsheet in new tab...', 'info');
             
             window.open(url, '_blank');
+        }
+
+        function simulatePaymentSuccess() {
+            debugLog('Simulating payment success...', 'info');
+            
+            // Get the last created client from debug
+            if (currentUser && currentUser.type === 'client') {
+                window.location.href = `${window.location.pathname}?payment=simulate&client=${currentUser.clientId}`;
+            } else {
+                debugLog('No client logged in. Please login as a client first.', 'error');
+                alert('Please login as a client first, then use this button to simulate payment success.');
+            }
         }
 
         function clearDebugLog() {
@@ -1235,6 +1423,9 @@
             document.documentElement.style.setProperty('--primary-color', '#2563eb');
             document.documentElement.style.setProperty('--primary-dark', '#1d4ed8');
             
+            // Clear URL parameters if any
+            window.history.replaceState({}, document.title, window.location.pathname);
+            
             debugLog('Logged out', 'success');
             showLoginPage();
         }
@@ -1250,8 +1441,8 @@
         async function handleLogin(e) {
             e.preventDefault();
             
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value.trim();
             
             debugLog(`Attempting login as ${loginType}: ${email}`, 'info');
             showLoading('Authenticating...');
@@ -1282,7 +1473,7 @@
             } catch (error) {
                 hideLoading();
                 debugLog(`Login error: ${error.message}`, 'error');
-                showMessage('login-message', 'error', 'Login failed. Please try again.');
+                showMessage('login-message', 'error', 'Login failed. Please check your connection and try again.');
             }
         }
 
@@ -1291,6 +1482,7 @@
             document.getElementById('login-page').style.display = 'block';
             document.getElementById('admin-dashboard').style.display = 'none';
             document.getElementById('client-portal').style.display = 'none';
+            document.getElementById('payment-success-page').style.display = 'none';
             document.getElementById('main-header').style.display = 'block';
             document.getElementById('main-content').style.padding = '40px';
         }
@@ -1299,6 +1491,7 @@
             document.getElementById('login-page').style.display = 'none';
             document.getElementById('admin-dashboard').style.display = 'block';
             document.getElementById('client-portal').style.display = 'none';
+            document.getElementById('payment-success-page').style.display = 'none';
             document.getElementById('main-header').style.display = 'block';
             document.getElementById('main-content').style.padding = '40px';
             loadClients();
@@ -1309,6 +1502,7 @@
             document.getElementById('login-page').style.display = 'none';
             document.getElementById('admin-dashboard').style.display = 'none';
             document.getElementById('client-portal').style.display = 'block';
+            document.getElementById('payment-success-page').style.display = 'none';
             document.getElementById('main-header').style.display = 'none';
             document.getElementById('main-content').style.padding = '0';
             
@@ -1329,7 +1523,7 @@
                 document.getElementById('payment-amount').textContent = `£${currentUser.packagePrice}`;
                 document.getElementById('pay-button').onclick = () => {
                     window.open(currentUser.stripeLink, '_blank');
-                    showMessage('client-message', 'info', 'Complete payment in the new window. Refresh this page after payment.');
+                    showMessage('client-message', 'info', 'Complete payment in the new window. After payment, you will be redirected back here automatically.');
                 };
             }
         }
@@ -1385,10 +1579,13 @@
                                 Supported formats: PDF, DOC, DOCX (Max 10MB)
                             </p>
                         </div>
-                        <input type="file" id="doc-file-input" accept=".pdf,.doc,.docx" multiple 
-                               style="display: none;"
-                               title="Upload job requirement documents"
-                               aria-label="Upload job requirement documents">
+                        
+                        <div class="upload-progress">
+                            <p style="margin-bottom: 10px;">Uploading...</p>
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="upload-progress-fill" style="width: 0%;"></div>
+                            </div>
+                        </div>
                         
                         <div id="uploaded-docs" style="margin-top: 30px;">
                             <!-- Uploaded documents will appear here -->
@@ -1465,6 +1662,9 @@
             document.getElementById('invoice-date').textContent = new Date().toLocaleDateString();
             document.getElementById('invoice-number').textContent = `INV-${Date.now().toString().slice(-6)}`;
             
+            // Setup drag and drop
+            setupDragAndDrop();
+            
             // Load client data
             loadClientData();
         }
@@ -1511,14 +1711,52 @@
                 // Update filename display
                 document.getElementById(`${type}-filename`).textContent = file.name;
                 
-                // Show preview
+                // Resize and show preview
+                resizeImage(file, type === 'logo' ? 500 : 1920, type === 'logo' ? 500 : 300).then(resizedBase64 => {
+                    document.getElementById(`${type}-preview-img`).src = resizedBase64;
+                    document.getElementById(`${type}-preview`).style.display = 'block';
+                });
+            }
+        }
+
+        // Image resizing function
+        function resizeImage(file, maxWidth, maxHeight) {
+            return new Promise((resolve) => {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    document.getElementById(`${type}-preview-img`).src = e.target.result;
-                    document.getElementById(`${type}-preview`).style.display = 'block';
+                    const img = new Image();
+                    img.onload = function() {
+                        const canvas = document.createElement('canvas');
+                        let width = img.width;
+                        let height = img.height;
+                        
+                        // Calculate new dimensions
+                        if (width > height) {
+                            if (width > maxWidth) {
+                                height *= maxWidth / width;
+                                width = maxWidth;
+                            }
+                        } else {
+                            if (height > maxHeight) {
+                                width *= maxHeight / height;
+                                height = maxHeight;
+                            }
+                        }
+                        
+                        canvas.width = width;
+                        canvas.height = height;
+                        
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        
+                        // Convert to base64 with compression
+                        const resizedBase64 = canvas.toDataURL('image/jpeg', 0.8);
+                        resolve(resizedBase64);
+                    };
+                    img.src = e.target.result;
                 };
                 reader.readAsDataURL(file);
-            }
+            });
         }
 
         async function handleAddClient(e) {
@@ -1531,23 +1769,15 @@
             const logoFile = document.getElementById('companyLogo').files[0];
             const bannerFile = document.getElementById('companyBanner').files[0];
             
-            // Convert images to base64
+            // Convert and resize images to base64
             let logoBase64 = '';
             if (logoFile) {
-                logoBase64 = await new Promise((resolve) => {
-                    const reader = new FileReader();
-                    reader.onload = (e) => resolve(e.target.result);
-                    reader.readAsDataURL(logoFile);
-                });
+                logoBase64 = await resizeImage(logoFile, 500, 500);
             }
             
             let bannerBase64 = '';
             if (bannerFile) {
-                bannerBase64 = await new Promise((resolve) => {
-                    const reader = new FileReader();
-                    reader.onload = (e) => resolve(e.target.result);
-                    reader.readAsDataURL(bannerFile);
-                });
+                bannerBase64 = await resizeImage(bannerFile, 1920, 300);
             }
             
             const clientData = {
@@ -1677,12 +1907,58 @@
             document.getElementById(`${tabName}-tab`).classList.add('active');
         }
 
-        function loadClientData() {
+        async function loadClientData() {
             // Load candidates for client view
-            loadCandidates().then(() => {
-                // Copy candidates to client view
-                const clientCandidatesList = document.getElementById('client-candidates-list');
-                clientCandidatesList.innerHTML = document.getElementById('admin-candidates-list').innerHTML;
+            await loadCandidates();
+            // Copy candidates to client view
+            const clientCandidatesList = document.getElementById('client-candidates-list');
+            clientCandidatesList.innerHTML = document.getElementById('admin-candidates-list').innerHTML;
+            
+            // Load client's documents
+            await loadClientDocuments();
+        }
+
+        async function loadClientDocuments() {
+            debugLog('Loading client documents...', 'info');
+            
+            try {
+                const response = await submitToGoogleScript({
+                    action: 'getDocuments',
+                    clientId: currentUser.clientId
+                });
+                
+                if (response.status === 'success') {
+                    debugLog(`Loaded ${response.documents.length} documents`, 'success');
+                    displayUploadedDocuments(response.documents);
+                }
+            } catch (error) {
+                debugLog(`Error loading documents: ${error.message}`, 'error');
+            }
+        }
+
+        function displayUploadedDocuments(documents) {
+            const docsContainer = document.getElementById('uploaded-docs');
+            
+            if (documents.length === 0) {
+                docsContainer.innerHTML = '';
+                return;
+            }
+            
+            docsContainer.innerHTML = '<h4 style="margin-bottom: 15px;">Uploaded Documents</h4>';
+            
+            documents.forEach(doc => {
+                const docElement = document.createElement('div');
+                docElement.className = 'cv-card';
+                docElement.innerHTML = `
+                    <div class="cv-info">
+                        <h4>📄 ${doc.fileName}</h4>
+                        <p>Uploaded: ${new Date(doc.uploadDate).toLocaleDateString()}</p>
+                    </div>
+                    <div class="cv-actions">
+                        <button class="btn secondary" onclick="downloadDoc('${doc.documentId}', '${doc.fileName}', '${doc.fileData}')">Download</button>
+                    </div>
+                `;
+                docsContainer.appendChild(docElement);
             });
         }
 
@@ -1692,41 +1968,83 @@
 
         function handleDocUpload(e) {
             const files = Array.from(e.target.files);
-            
-            files.forEach(file => {
+            handleDocUploadFiles(files);
+        }
+
+        async function handleDocUploadFiles(files) {
+            for (const file of files) {
                 if (file.size > 10 * 1024 * 1024) {
                     showMessage('client-message', 'error', `${file.name} is too large. Max size is 10MB.`);
-                    return;
+                    continue;
                 }
                 
-                uploadedDocs.push(file);
-                displayUploadedDoc(file);
-            });
-        }
-
-        function displayUploadedDoc(file) {
-            const docsContainer = document.getElementById('uploaded-docs');
-            if (!docsContainer.querySelector('h4')) {
-                docsContainer.innerHTML = '<h4 style="margin-bottom: 15px;">Uploaded Documents</h4>';
+                await uploadDocument(file);
             }
-            
-            const docElement = document.createElement('div');
-            docElement.className = 'cv-card';
-            docElement.innerHTML = `
-                <div class="cv-info">
-                    <h4>📄 ${file.name}</h4>
-                    <p>${(file.size / 1024).toFixed(1)} KB</p>
-                </div>
-                <div class="cv-actions">
-                    <button class="btn secondary" onclick="removeDoc('${file.name}')">Remove</button>
-                </div>
-            `;
-            docsContainer.appendChild(docElement);
         }
 
-        function removeDoc(fileName) {
-            uploadedDocs = uploadedDocs.filter(doc => doc.name !== fileName);
-            event.target.closest('.cv-card').remove();
+        async function uploadDocument(file) {
+            debugLog(`Uploading document: ${file.name}`, 'info');
+            
+            // Show upload progress
+            const progressBar = document.querySelector('.upload-progress');
+            const progressFill = document.getElementById('upload-progress-fill');
+            progressBar.style.display = 'block';
+            
+            try {
+                // Convert file to base64
+                const fileData = await new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => resolve(e.target.result);
+                    reader.readAsDataURL(file);
+                });
+                
+                // Simulate progress
+                progressFill.style.width = '50%';
+                
+                const response = await submitToGoogleScript({
+                    action: 'uploadDocument',
+                    clientId: currentUser.clientId,
+                    fileName: file.name,
+                    fileType: file.type,
+                    fileData: fileData
+                });
+                
+                progressFill.style.width = '100%';
+                
+                if (response.status === 'success') {
+                    debugLog('Document uploaded successfully', 'success');
+                    showMessage('client-message', 'success', `${file.name} uploaded successfully!`);
+                    
+                    // Reload documents
+                    await loadClientDocuments();
+                } else {
+                    throw new Error(response.message || 'Upload failed');
+                }
+            } catch (error) {
+                debugLog(`Error uploading document: ${error.message}`, 'error');
+                showMessage('client-message', 'error', `Failed to upload ${file.name}`);
+            } finally {
+                // Hide progress bar
+                setTimeout(() => {
+                    progressBar.style.display = 'none';
+                    progressFill.style.width = '0%';
+                }, 1000);
+            }
+        }
+
+        function downloadDoc(docId, fileName, fileData) {
+            try {
+                // Create a temporary link element
+                const link = document.createElement('a');
+                link.href = fileData;
+                link.download = fileName;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            } catch (error) {
+                debugLog(`Error downloading document: ${error.message}`, 'error');
+                showMessage('client-message', 'error', 'Failed to download document');
+            }
         }
 
         function viewCV(candidateName) {
@@ -1756,6 +2074,7 @@
                     return result;
                 } catch (parseError) {
                     debugLog(`Parse error: ${parseError.message}`, 'error');
+                    debugLog(`Raw response: ${text}`, 'error');
                     throw new Error('Invalid response from server');
                 }
             } catch (error) {
@@ -1783,6 +2102,7 @@
                 messageEl.style.display = 'none';
             }, 5000);
         }
+        
     </script>
 </body>
 </html>
