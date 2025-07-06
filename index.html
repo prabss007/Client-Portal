@@ -726,6 +726,125 @@
             border-radius: 4px;
         }
 
+        /* Debug Panel Styles */
+        .debug-panel {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: #1e293b;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            width: 300px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            z-index: 9999;
+            font-family: monospace;
+        }
+
+        .debug-panel h4 {
+            color: #f59e0b;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+
+        .debug-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .debug-buttons button {
+            background: #374151;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background 0.3s;
+        }
+
+        .debug-buttons button:hover {
+            background: #4b5563;
+        }
+
+        .debug-info {
+            font-size: 12px;
+            color: #94a3b8;
+        }
+
+        .debug-info p {
+            margin: 5px 0;
+        }
+
+        #debug-status {
+            font-weight: bold;
+        }
+
+        .status-success {
+            color: #10b981;
+        }
+
+        .status-error {
+            color: #ef4444;
+        }
+
+        .status-testing {
+            color: #f59e0b;
+        }
+
+        /* Google Drive Integration Styles */
+        .cv-card {
+            transition: all 0.3s ease;
+        }
+
+        .cv-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .cv-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .cv-actions .btn {
+            padding: 8px 16px;
+            font-size: 0.9em;
+        }
+
+        .upload-area.uploading {
+            background: #f0fdf4;
+            border-color: var(--secondary-color);
+        }
+
+        .message a {
+            color: white !important;
+            text-decoration: underline;
+        }
+
+        .message a:hover {
+            text-decoration: none;
+        }
+
+        /* Drive status indicators */
+        .drive-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 8px;
+            background: #f0fdf4;
+            color: #065f46;
+            border-radius: 12px;
+            font-size: 0.8em;
+        }
+
+        .drive-status.error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
         @media (max-width: 768px) {
             .content {
                 padding: 20px;
@@ -992,76 +1111,6 @@
             <p><strong>Status:</strong> <span id="debug-status">Not tested</span></p>
         </div>
     </div>
-
-    <style>
-        /* Debug Panel Styles */
-        .debug-panel {
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            background: #1e293b;
-            color: white;
-            padding: 20px;
-            border-radius: 10px;
-            width: 300px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-            z-index: 9999;
-            font-family: monospace;
-        }
-
-        .debug-panel h4 {
-            color: #f59e0b;
-            margin-bottom: 15px;
-            font-size: 16px;
-        }
-
-        .debug-buttons {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            margin-bottom: 15px;
-        }
-
-        .debug-buttons button {
-            background: #374151;
-            color: white;
-            border: none;
-            padding: 8px 12px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 12px;
-            transition: background 0.3s;
-        }
-
-        .debug-buttons button:hover {
-            background: #4b5563;
-        }
-
-        .debug-info {
-            font-size: 12px;
-            color: #94a3b8;
-        }
-
-        .debug-info p {
-            margin: 5px 0;
-        }
-
-        #debug-status {
-            font-weight: bold;
-        }
-
-        .status-success {
-            color: #10b981;
-        }
-
-        .status-error {
-            color: #ef4444;
-        }
-
-        .status-testing {
-            color: #f59e0b;
-        }
-    </style>
 
     <script>
         // IMPORTANT: Update this with your deployed Google Apps Script URL
@@ -1438,13 +1487,16 @@
             });
         }
 
+        // FIXED LOGIN FUNCTION - NO LONGER TRIMS PASSWORD
         async function handleLogin(e) {
             e.preventDefault();
             
+            // Get values - trim email but NOT password
             const email = document.getElementById('email').value.trim();
-            const password = document.getElementById('password').value.trim();
+            const password = document.getElementById('password').value; // DON'T TRIM PASSWORD!
             
             debugLog(`Attempting login as ${loginType}: ${email}`, 'info');
+            debugLog(`Password length: ${password.length} chars`, 'info');
             showLoading('Authenticating...');
             
             try {
@@ -1452,7 +1504,7 @@
                     action: 'login',
                     type: loginType,
                     email: email,
-                    password: password
+                    password: password // Send password exactly as typed
                 });
                 
                 hideLoading();
@@ -1528,22 +1580,26 @@
             }
         }
 
-        // Create the enhanced client portal view
+        // Create the enhanced client portal view - FIXED TO USE DRIVE URLs
         function createPaidClientView() {
             const paidView = document.getElementById('paid-client-view');
+            
+            // Use Drive URLs if available, otherwise fall back to base64
+            const bannerSrc = currentUser.bannerUrl || currentUser.bannerBase64 || '';
+            const logoSrc = currentUser.logoUrl || currentUser.logoBase64 || '';
             
             paidView.innerHTML = `
                 <!-- Client Portal Banner -->
                 <div class="client-portal-banner">
-                    ${currentUser.bannerBase64 ? 
-                        `<img src="${currentUser.bannerBase64}" alt="Company Banner">` : 
+                    ${bannerSrc ? 
+                        `<img src="${bannerSrc}" alt="Company Banner">` : 
                         ''
                     }
                     <div class="client-portal-banner-overlay">
                         <div class="client-portal-header-content">
-                            ${currentUser.logoBase64 ? 
+                            ${logoSrc ? 
                                 `<div class="client-logo-container">
-                                    <img src="${currentUser.logoBase64}" alt="Company Logo" class="client-logo-large">
+                                    <img src="${logoSrc}" alt="Company Logo" class="client-logo-large">
                                 </div>` : 
                                 ''
                             }
@@ -1569,11 +1625,11 @@
                     <div class="documents-section">
                         <h3>Upload Job Requirements</h3>
                         <p style="color: #6b7280; margin-bottom: 20px;">
-                            Upload your job descriptions and requirements for our recruitment team
+                            Upload your job descriptions and requirements. Files are securely stored in Google Drive.
                         </p>
                         <div class="upload-area" onclick="triggerDocUpload()">
                             <div style="font-size: 3em; color: #9ca3af; margin-bottom: 15px; position: relative; z-index: 1;">📤</div>
-                            <h4 style="position: relative; z-index: 1;">Upload Documents</h4>
+                            <h4 style="position: relative; z-index: 1;">Upload to Google Drive</h4>
                             <p style="color: #6b7280; position: relative; z-index: 1;">Click here or drag and drop files</p>
                             <p style="font-size: 0.9em; color: #9ca3af; margin-top: 10px; position: relative; z-index: 1;">
                                 Supported formats: PDF, DOC, DOCX (Max 10MB)
@@ -1581,7 +1637,7 @@
                         </div>
                         
                         <div class="upload-progress">
-                            <p style="margin-bottom: 10px;">Uploading...</p>
+                            <p style="margin-bottom: 10px;">Uploading to Google Drive...</p>
                             <div class="progress-bar">
                                 <div class="progress-fill" id="upload-progress-fill" style="width: 0%;"></div>
                             </div>
@@ -1759,356 +1815,247 @@
             });
         }
         
-        // UPDATED CLIENT PORTAL FUNCTIONS FOR GOOGLE DRIVE INTEGRATION
-// Add these updates to your existing HTML file
-
-// Update the handleAddClient function to NOT convert to base64 for storage
-async function handleAddClient(e) {
-    e.preventDefault();
-    
-    debugLog('Adding new client...', 'info');
-    showLoading('Creating client account and Drive folder...');
-    
-    const formData = new FormData(e.target);
-    const logoFile = document.getElementById('companyLogo').files[0];
-    const bannerFile = document.getElementById('companyBanner').files[0];
-    
-    // Convert images to base64 for upload (will be saved to Drive by the script)
-    let logoBase64 = '';
-    if (logoFile) {
-        logoBase64 = await fileToBase64(logoFile);
-    }
-    
-    let bannerBase64 = '';
-    if (bannerFile) {
-        bannerBase64 = await fileToBase64(bannerFile);
-    }
-    
-    const clientData = {
-        action: 'addClient',
-        companyName: formData.get('companyName'),
-        contactName: formData.get('contactName'),
-        email: formData.get('clientEmail'),
-        password: formData.get('clientPassword'),
-        logoBase64: logoBase64,
-        bannerBase64: bannerBase64,
-        companyColor: formData.get('companyColor'),
-        packagePrice: formData.get('packagePrice'),
-        paymentStatus: 'pending',
-        timestamp: new Date().toISOString()
-    };
-    
-    debugLog(`Client data prepared: ${clientData.companyName}`, 'info');
-    
-    try {
-        const response = await submitToGoogleScript(clientData);
-        hideLoading();
-        
-        if (response.status === 'success') {
-            debugLog('Client created successfully', 'success');
-            showMessage('add-client-message', 'success', 
-                `Client account created successfully! 
-                 Payment link: ${response.stripeLink}
-                 Drive folder created: ${response.folderId ? '✅' : '❌'}`);
-            e.target.reset();
-            document.getElementById('logo-preview').style.display = 'none';
-            document.getElementById('banner-preview').style.display = 'none';
-            document.getElementById('logo-filename').textContent = 'No file selected';
-            document.getElementById('banner-filename').textContent = 'No file selected';
-            document.getElementById('color-value').textContent = '#2563eb';
+        // FIXED handleAddClient - consistent password handling
+        async function handleAddClient(e) {
+            e.preventDefault();
             
-            setTimeout(() => loadClients(), 2000);
-        } else {
-            debugLog(`Failed to create client: ${response.message}`, 'error');
-            showMessage('add-client-message', 'error', response.message || 'Failed to create client account.');
-        }
-    } catch (error) {
-        hideLoading();
-        debugLog(`Error creating client: ${error.message}`, 'error');
-        showMessage('add-client-message', 'error', 'Failed to create client account. Please try again.');
-    }
-}
-
-// Helper function to convert file to base64
-function fileToBase64(file) {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = () => resolve(reader.result);
-        reader.onerror = error => reject(error);
-    });
-}
-
-// Update the createPaidClientView function to use Drive URLs
-function createPaidClientView() {
-    const paidView = document.getElementById('paid-client-view');
-    
-    paidView.innerHTML = `
-        <!-- Client Portal Banner -->
-        <div class="client-portal-banner">
-            ${currentUser.bannerUrl ? 
-                `<img src="${currentUser.bannerUrl}" alt="Company Banner">` : 
-                ''
+            debugLog('Adding new client...', 'info');
+            showLoading('Creating client account and Drive folder...');
+            
+            const formData = new FormData(e.target);
+            const logoFile = document.getElementById('companyLogo').files[0];
+            const bannerFile = document.getElementById('companyBanner').files[0];
+            
+            // Convert images to base64 for upload
+            let logoBase64 = '';
+            if (logoFile) {
+                logoBase64 = await fileToBase64(logoFile);
             }
-            <div class="client-portal-banner-overlay">
-                <div class="client-portal-header-content">
-                    ${currentUser.logoUrl ? 
-                        `<div class="client-logo-container">
-                            <img src="${currentUser.logoUrl}" alt="Company Logo" class="client-logo-large">
-                        </div>` : 
-                        ''
+            
+            let bannerBase64 = '';
+            if (bannerFile) {
+                bannerBase64 = await fileToBase64(bannerFile);
+            }
+            
+            // Get password without trimming
+            const password = document.getElementById('clientPassword').value;
+            
+            const clientData = {
+                action: 'addClient',
+                companyName: formData.get('companyName').trim(),
+                contactName: formData.get('contactName').trim(),
+                email: formData.get('clientEmail').trim(),
+                password: password, // Don't trim password - store exactly as entered
+                logoBase64: logoBase64,
+                bannerBase64: bannerBase64,
+                companyColor: formData.get('companyColor'),
+                packagePrice: formData.get('packagePrice'),
+                paymentStatus: 'pending',
+                timestamp: new Date().toISOString()
+            };
+            
+            debugLog(`Client data prepared: ${clientData.companyName}`, 'info');
+            debugLog(`Password length: ${password.length} chars`, 'info');
+            
+            try {
+                const response = await submitToGoogleScript(clientData);
+                hideLoading();
+                
+                if (response.status === 'success') {
+                    debugLog('Client created successfully', 'success');
+                    showMessage('add-client-message', 'success', 
+                        `Client account created successfully! 
+                         Email: ${clientData.email}
+                         Password: ${password}
+                         Payment link: ${response.stripeLink}
+                         Drive folder: ${response.folderId ? '✅' : '❌'}`);
+                    e.target.reset();
+                    document.getElementById('logo-preview').style.display = 'none';
+                    document.getElementById('banner-preview').style.display = 'none';
+                    document.getElementById('logo-filename').textContent = 'No file selected';
+                    document.getElementById('banner-filename').textContent = 'No file selected';
+                    document.getElementById('color-value').textContent = '#2563eb';
+                    
+                    setTimeout(() => loadClients(), 2000);
+                } else {
+                    debugLog(`Failed to create client: ${response.message}`, 'error');
+                    showMessage('add-client-message', 'error', response.message || 'Failed to create client account.');
+                }
+            } catch (error) {
+                hideLoading();
+                debugLog(`Error creating client: ${error.message}`, 'error');
+                showMessage('add-client-message', 'error', 'Failed to create client account. Please try again.');
+            }
+        }
+
+        // Helper function to convert file to base64
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+        }
+
+        // Update displayUploadedDocuments to show Drive links
+        function displayUploadedDocuments(documents) {
+            const docsContainer = document.getElementById('uploaded-docs');
+            
+            if (documents.length === 0) {
+                docsContainer.innerHTML = '<p style="text-align: center; color: #6b7280; margin-top: 20px;">No documents uploaded yet.</p>';
+                return;
+            }
+            
+            docsContainer.innerHTML = '<h4 style="margin-bottom: 15px;">📁 Documents in Google Drive</h4>';
+            
+            documents.forEach(doc => {
+                const docElement = document.createElement('div');
+                docElement.className = 'cv-card';
+                
+                // Check if it's a Drive document with URL
+                if (doc.driveUrl && doc.driveFileId) {
+                    docElement.innerHTML = `
+                        <div class="cv-info">
+                            <h4>📄 ${doc.fileName}</h4>
+                            <p>Uploaded: ${new Date(doc.uploadDate).toLocaleDateString()}</p>
+                            <p style="font-size: 0.85em; color: #6b7280;">
+                                Size: ${formatFileSize(doc.fileSize || 0)}
+                            </p>
+                        </div>
+                        <div class="cv-actions">
+                            <button class="btn secondary" onclick="viewInDrive('${doc.driveUrl}')">
+                                View in Drive
+                            </button>
+                            <button class="btn" onclick="downloadFromDrive('${doc.driveFileId}', '${doc.fileName}')">
+                                Download
+                            </button>
+                        </div>
+                    `;
+                } else {
+                    // Fallback for older documents stored as base64
+                    docElement.innerHTML = `
+                        <div class="cv-info">
+                            <h4>📄 ${doc.fileName}</h4>
+                            <p>Uploaded: ${new Date(doc.uploadDate).toLocaleDateString()}</p>
+                        </div>
+                        <div class="cv-actions">
+                            <button class="btn secondary" onclick="downloadDoc('${doc.documentId}', '${doc.fileName}', '${doc.fileData}')">Download</button>
+                        </div>
+                    `;
+                }
+                
+                docsContainer.appendChild(docElement);
+            });
+        }
+
+        // Helper function to format file size
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        // View document in Google Drive
+        function viewInDrive(url) {
+            window.open(url, '_blank');
+        }
+
+        // Download document from Google Drive
+        async function downloadFromDrive(fileId, fileName) {
+            debugLog(`Downloading ${fileName} from Drive...`, 'info');
+            showLoading('Downloading from Google Drive...');
+            
+            try {
+                const response = await submitToGoogleScript({
+                    action: 'downloadDocument',
+                    fileId: fileId
+                });
+                
+                hideLoading();
+                
+                if (response.status === 'success') {
+                    // Create download link
+                    const link = document.createElement('a');
+                    link.href = response.data;
+                    link.download = response.fileName;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    
+                    showMessage('client-message', 'success', 'Download started!');
+                } else {
+                    throw new Error(response.message || 'Download failed');
+                }
+            } catch (error) {
+                hideLoading();
+                debugLog(`Download error: ${error.message}`, 'error');
+                showMessage('client-message', 'error', 'Failed to download document. Try viewing in Drive instead.');
+            }
+        }
+
+        // Update the uploadDocument function
+        async function uploadDocument(file) {
+            debugLog(`Uploading document to Google Drive: ${file.name}`, 'info');
+            
+            // Show upload progress
+            const progressBar = document.querySelector('.upload-progress');
+            const progressFill = document.getElementById('upload-progress-fill');
+            progressBar.style.display = 'block';
+            
+            try {
+                // Convert file to base64
+                const fileData = await fileToBase64(file);
+                
+                // Simulate progress
+                progressFill.style.width = '30%';
+                
+                const response = await submitToGoogleScript({
+                    action: 'uploadDocument',
+                    clientId: currentUser.clientId,
+                    fileName: file.name,
+                    fileType: file.type,
+                    fileData: fileData
+                });
+                
+                progressFill.style.width = '100%';
+                
+                if (response.status === 'success') {
+                    debugLog('Document uploaded successfully to Drive', 'success');
+                    
+                    // Show success message with Drive link if available
+                    let message = `${file.name} uploaded successfully!`;
+                    if (response.fileUrl) {
+                        message += ` <a href="${response.fileUrl}" target="_blank" style="color: white; text-decoration: underline;">View in Drive</a>`;
                     }
-                    <div class="client-info-header">
-                        <h1>${currentUser.company}</h1>
-                        <p>Welcome back, ${currentUser.contactName}</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="client-portal-nav">
-            <div class="portal-tabs">
-                <button class="tab-btn active" onclick="showTab('documents')">Documents</button>
-                <button class="tab-btn" onclick="showTab('candidates')">Candidate CVs</button>
-                <button class="tab-btn" onclick="showTab('invoice')">Invoice</button>
-            </div>
-            <button class="btn secondary" onclick="logout()">Logout</button>
-        </div>
-        
-        <!-- Documents Tab -->
-        <div id="documents-tab" class="tab-content active">
-            <div class="documents-section">
-                <h3>Upload Job Requirements</h3>
-                <p style="color: #6b7280; margin-bottom: 20px;">
-                    Upload your job descriptions and requirements. Files are securely stored in Google Drive.
-                </p>
-                <div class="upload-area" onclick="triggerDocUpload()">
-                    <div style="font-size: 3em; color: #9ca3af; margin-bottom: 15px; position: relative; z-index: 1;">📤</div>
-                    <h4 style="position: relative; z-index: 1;">Upload to Google Drive</h4>
-                    <p style="color: #6b7280; position: relative; z-index: 1;">Click here or drag and drop files</p>
-                    <p style="font-size: 0.9em; color: #9ca3af; margin-top: 10px; position: relative; z-index: 1;">
-                        Supported formats: PDF, DOC, DOCX (Max 10MB)
-                    </p>
-                </div>
-                
-                <div class="upload-progress">
-                    <p style="margin-bottom: 10px;">Uploading to Google Drive...</p>
-                    <div class="progress-bar">
-                        <div class="progress-fill" id="upload-progress-fill" style="width: 0%;"></div>
-                    </div>
-                </div>
-                
-                <div id="uploaded-docs" style="margin-top: 30px;">
-                    <!-- Uploaded documents will appear here -->
-                </div>
-            </div>
-        </div>
-        
-        <!-- Other tabs remain the same -->
-        <div id="candidates-tab" class="tab-content">
-            <h3>Candidate Database</h3>
-            <p style="color: #6b7280; margin-bottom: 20px;">
-                Browse and download candidate CVs matched for your requirements
-            </p>
-            <div class="cv-grid" id="client-candidates-list">
-                <!-- Candidates will be loaded here -->
-            </div>
-        </div>
-        
-        <div id="invoice-tab" class="tab-content">
-            <div style="max-width: 800px; margin: 0 auto;">
-                <div style="background: #f8fafc; padding: 40px; border-radius: 15px;">
-                    <div style="text-align: center; margin-bottom: 40px;">
-                        <h2>INVOICE</h2>
-                        <p style="color: #6b7280;">Invoice #<span id="invoice-number">INV-001</span></p>
-                        <p style="color: #6b7280;">Date: <span id="invoice-date"></span></p>
-                    </div>
                     
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-bottom: 40px;">
-                        <div>
-                            <h4 style="color: #6b7280; margin-bottom: 10px;">FROM</h4>
-                            <p><strong>MerlinsGroup</strong></p>
-                            <p>Premium Recruitment Excellence</p>
-                            <p>007prabs@gmail.com</p>
-                        </div>
-                        <div>
-                            <h4 style="color: #6b7280; margin-bottom: 10px;">BILL TO</h4>
-                            <p><strong id="invoice-company">${currentUser.company}</strong></p>
-                            <p id="invoice-contact">${currentUser.contactName}</p>
-                            <p id="invoice-email">${currentUser.email}</p>
-                        </div>
-                    </div>
+                    const messageEl = document.getElementById('client-message');
+                    messageEl.className = 'message success';
+                    messageEl.innerHTML = message;
+                    messageEl.style.display = 'block';
                     
-                    <table style="width: 100%; border-collapse: collapse;">
-                        <thead>
-                            <tr style="border-bottom: 2px solid #e5e7eb;">
-                                <th style="text-align: left; padding: 15px 0;">Description</th>
-                                <th style="text-align: right; padding: 15px 0;">Amount</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td style="padding: 20px 0;">Recruitment Services Package</td>
-                                <td style="text-align: right; padding: 20px 0;">£${currentUser.packagePrice}</td>
-                            </tr>
-                        </tbody>
-                        <tfoot>
-                            <tr style="border-top: 2px solid #e5e7eb;">
-                                <td style="padding: 20px 0; font-weight: bold;">Total</td>
-                                <td style="text-align: right; padding: 20px 0; font-weight: bold;">£${currentUser.packagePrice}</td>
-                            </tr>
-                        </tfoot>
-                    </table>
+                    setTimeout(() => {
+                        messageEl.style.display = 'none';
+                    }, 5000);
                     
-                    <div style="margin-top: 40px; text-align: center;">
-                        <button class="btn" onclick="window.print()">Print Invoice</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
-    
-    // Set invoice details
-    document.getElementById('invoice-date').textContent = new Date().toLocaleDateString();
-    document.getElementById('invoice-number').textContent = `INV-${Date.now().toString().slice(-6)}`;
-    
-    // Setup drag and drop
-    setupDragAndDrop();
-    
-    // Load client data
-    loadClientData();
-}
-
-// Update displayUploadedDocuments to show Drive links
-function displayUploadedDocuments(documents) {
-    const docsContainer = document.getElementById('uploaded-docs');
-    
-    if (documents.length === 0) {
-        docsContainer.innerHTML = '<p style="text-align: center; color: #6b7280; margin-top: 20px;">No documents uploaded yet.</p>';
-        return;
-    }
-    
-    docsContainer.innerHTML = '<h4 style="margin-bottom: 15px;">📁 Documents in Google Drive</h4>';
-    
-    documents.forEach(doc => {
-        const docElement = document.createElement('div');
-        docElement.className = 'cv-card';
-        docElement.innerHTML = `
-            <div class="cv-info">
-                <h4>📄 ${doc.fileName}</h4>
-                <p>Uploaded: ${new Date(doc.uploadDate).toLocaleDateString()}</p>
-                <p style="font-size: 0.85em; color: #6b7280;">
-                    Size: ${formatFileSize(doc.fileSize || 0)}
-                </p>
-            </div>
-            <div class="cv-actions">
-                <button class="btn secondary" onclick="viewInDrive('${doc.driveUrl}')">
-                    View in Drive
-                </button>
-                <button class="btn" onclick="downloadFromDrive('${doc.driveFileId}', '${doc.fileName}')">
-                    Download
-                </button>
-            </div>
-        `;
-        docsContainer.appendChild(docElement);
-    });
-}
-
-// Helper function to format file size
-function formatFileSize(bytes) {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-}
-
-// View document in Google Drive
-function viewInDrive(url) {
-    window.open(url, '_blank');
-}
-
-// Download document from Google Drive
-async function downloadFromDrive(fileId, fileName) {
-    debugLog(`Downloading ${fileName} from Drive...`, 'info');
-    showLoading('Downloading from Google Drive...');
-    
-    try {
-        const response = await submitToGoogleScript({
-            action: 'downloadDocument',
-            fileId: fileId
-        });
-        
-        hideLoading();
-        
-        if (response.status === 'success') {
-            // Create download link
-            const link = document.createElement('a');
-            link.href = response.data;
-            link.download = response.fileName;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            
-            showMessage('client-message', 'success', 'Download started!');
-        } else {
-            throw new Error(response.message || 'Download failed');
+                    // Reload documents
+                    await loadClientDocuments();
+                } else {
+                    throw new Error(response.message || 'Upload failed');
+                }
+            } catch (error) {
+                debugLog(`Error uploading document: ${error.message}`, 'error');
+                showMessage('client-message', 'error', `Failed to upload ${file.name}`);
+            } finally {
+                // Hide progress bar
+                setTimeout(() => {
+                    progressBar.style.display = 'none';
+                    progressFill.style.width = '0%';
+                }, 1000);
+            }
         }
-    } catch (error) {
-        hideLoading();
-        debugLog(`Download error: ${error.message}`, 'error');
-        showMessage('client-message', 'error', 'Failed to download document. Try viewing in Drive instead.');
-    }
-}
-
-// Update the uploadDocument function
-async function uploadDocument(file) {
-    debugLog(`Uploading document to Google Drive: ${file.name}`, 'info');
-    
-    // Show upload progress
-    const progressBar = document.querySelector('.upload-progress');
-    const progressFill = document.getElementById('upload-progress-fill');
-    progressBar.style.display = 'block';
-    
-    try {
-        // Convert file to base64
-        const fileData = await fileToBase64(file);
-        
-        // Simulate progress
-        progressFill.style.width = '30%';
-        
-        const response = await submitToGoogleScript({
-            action: 'uploadDocument',
-            clientId: currentUser.clientId,
-            fileName: file.name,
-            fileType: file.type,
-            fileData: fileData
-        });
-        
-        progressFill.style.width = '100%';
-        
-        if (response.status === 'success') {
-            debugLog('Document uploaded successfully to Drive', 'success');
-            showMessage('client-message', 'success', 
-                `${file.name} uploaded successfully! 
-                 <a href="${response.fileUrl}" target="_blank" style="color: white; text-decoration: underline;">View in Drive</a>`);
-            
-            // Reload documents
-            await loadClientDocuments();
-        } else {
-            throw new Error(response.message || 'Upload failed');
-        }
-    } catch (error) {
-        debugLog(`Error uploading document: ${error.message}`, 'error');
-        showMessage('client-message', 'error', `Failed to upload ${file.name}`);
-    } finally {
-        // Hide progress bar
-        setTimeout(() => {
-            progressBar.style.display = 'none';
-            progressFill.style.width = '0%';
-        }, 1000);
-    }
-}
 
         // Update loadClients to show Drive folder status
         async function loadClients() {
@@ -2139,105 +2086,6 @@ async function uploadDocument(file) {
                                 <p class="client-info">Logo: ${client.hasLogo ? '✅ Uploaded' : '❌ Not uploaded'}</p>
                                 <p class="client-info">Banner: ${client.hasBanner ? '✅ Uploaded' : '❌ Not uploaded'}</p>
                                 <p class="client-info">Drive Folder: ${client.hasDriveFolder ? '✅ Created' : '❌ Not created'}</p>
-                                <span class="client-status status-${client.status}">${client.status.toUpperCase()}</span>
-                            </div>
-                        `).join('');
-                    }
-                } else {
-                    debugLog('Failed to load clients', 'error');
-                }
-            } catch (error) {
-                debugLog(`Error loading clients: ${error.message}`, 'error');
-            }
-        }
-
-        // Add these CSS updates for better Drive integration visuals
-        const driveStyles = `
-        <style>
-        /* Google Drive Integration Styles */
-        .cv-card {
-            transition: all 0.3s ease;
-        }
-
-        .cv-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
-        }
-
-        .cv-actions {
-            display: flex;
-            gap: 10px;
-        }
-
-        .cv-actions .btn {
-            padding: 8px 16px;
-            font-size: 0.9em;
-        }
-
-        .upload-area.uploading {
-            background: #f0fdf4;
-            border-color: var(--secondary-color);
-        }
-
-        .message a {
-            color: white !important;
-            text-decoration: underline;
-        }
-
-        .message a:hover {
-            text-decoration: none;
-        }
-
-        /* Drive status indicators */
-        .drive-status {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            padding: 4px 8px;
-            background: #f0fdf4;
-            color: #065f46;
-            border-radius: 12px;
-            font-size: 0.8em;
-        }
-
-        .drive-status.error {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-        </style>
-        `;
-
-        // Add the styles to the document
-        document.head.insertAdjacentHTML('beforeend', driveStyles);
-        
-        
-        async function loadClients() {
-            debugLog('Loading clients...', 'info');
-            
-            try {
-                const response = await submitToGoogleScript({
-                    action: 'getClients'
-                });
-                
-                if (response.status === 'success') {
-                    debugLog(`Loaded ${response.clients.length} clients`, 'success');
-                    
-                    const clientsList = document.getElementById('clients-list');
-                    
-                    if (response.clients.length === 0) {
-                        clientsList.innerHTML = '<p style="text-align: center; color: #6b7280; padding: 40px;">No clients yet. Add your first client!</p>';
-                    } else {
-                        clientsList.innerHTML = response.clients.map(client => `
-                            <div class="client-card">
-                                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
-                                    <div style="width: 20px; height: 20px; background: ${client.companyColor}; border-radius: 4px;"></div>
-                                    <h3>${client.company}</h3>
-                                </div>
-                                <p class="client-info">Contact: ${client.contact}</p>
-                                <p class="client-info">Email: ${client.email}</p>
-                                <p class="client-info">Package: £${client.packagePrice}</p>
-                                <p class="client-info">Logo: ${client.hasLogo ? '✅ Uploaded' : '❌ Not uploaded'}</p>
-                                <p class="client-info">Banner: ${client.hasBanner ? '✅ Uploaded' : '❌ Not uploaded'}</p>
                                 <span class="client-status status-${client.status}">${client.status.toUpperCase()}</span>
                             </div>
                         `).join('');
@@ -2323,32 +2171,6 @@ async function uploadDocument(file) {
             }
         }
 
-        function displayUploadedDocuments(documents) {
-            const docsContainer = document.getElementById('uploaded-docs');
-            
-            if (documents.length === 0) {
-                docsContainer.innerHTML = '';
-                return;
-            }
-            
-            docsContainer.innerHTML = '<h4 style="margin-bottom: 15px;">Uploaded Documents</h4>';
-            
-            documents.forEach(doc => {
-                const docElement = document.createElement('div');
-                docElement.className = 'cv-card';
-                docElement.innerHTML = `
-                    <div class="cv-info">
-                        <h4>📄 ${doc.fileName}</h4>
-                        <p>Uploaded: ${new Date(doc.uploadDate).toLocaleDateString()}</p>
-                    </div>
-                    <div class="cv-actions">
-                        <button class="btn secondary" onclick="downloadDoc('${doc.documentId}', '${doc.fileName}', '${doc.fileData}')">Download</button>
-                    </div>
-                `;
-                docsContainer.appendChild(docElement);
-            });
-        }
-
         function triggerDocUpload() {
             document.getElementById('doc-file-input').click();
         }
@@ -2366,56 +2188,6 @@ async function uploadDocument(file) {
                 }
                 
                 await uploadDocument(file);
-            }
-        }
-
-        async function uploadDocument(file) {
-            debugLog(`Uploading document: ${file.name}`, 'info');
-            
-            // Show upload progress
-            const progressBar = document.querySelector('.upload-progress');
-            const progressFill = document.getElementById('upload-progress-fill');
-            progressBar.style.display = 'block';
-            
-            try {
-                // Convert file to base64
-                const fileData = await new Promise((resolve) => {
-                    const reader = new FileReader();
-                    reader.onload = (e) => resolve(e.target.result);
-                    reader.readAsDataURL(file);
-                });
-                
-                // Simulate progress
-                progressFill.style.width = '50%';
-                
-                const response = await submitToGoogleScript({
-                    action: 'uploadDocument',
-                    clientId: currentUser.clientId,
-                    fileName: file.name,
-                    fileType: file.type,
-                    fileData: fileData
-                });
-                
-                progressFill.style.width = '100%';
-                
-                if (response.status === 'success') {
-                    debugLog('Document uploaded successfully', 'success');
-                    showMessage('client-message', 'success', `${file.name} uploaded successfully!`);
-                    
-                    // Reload documents
-                    await loadClientDocuments();
-                } else {
-                    throw new Error(response.message || 'Upload failed');
-                }
-            } catch (error) {
-                debugLog(`Error uploading document: ${error.message}`, 'error');
-                showMessage('client-message', 'error', `Failed to upload ${file.name}`);
-            } finally {
-                // Hide progress bar
-                setTimeout(() => {
-                    progressBar.style.display = 'none';
-                    progressFill.style.width = '0%';
-                }, 1000);
             }
         }
 
@@ -2490,6 +2262,31 @@ async function uploadDocument(file) {
             }, 5000);
         }
         
+        // ADD THIS DEBUG FUNCTION TO HELP TROUBLESHOOT LOGIN ISSUES
+        function debugLoginIssue() {
+            console.log('=== DEBUG LOGIN ISSUE ===');
+            
+            // Get current form values
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            console.log('Form values:');
+            console.log(`Email: "${email}"`);
+            console.log(`Email trimmed: "${email.trim()}"`);
+            console.log(`Password: "${password}"`);
+            console.log(`Password length: ${password.length}`);
+            console.log(`Password has spaces at start/end: ${password !== password.trim()}`);
+            
+            // Test what gets sent
+            const testData = {
+                action: 'login',
+                type: loginType,
+                email: email.trim(),
+                password: password
+            };
+            
+            console.log('\nData that would be sent:', JSON.stringify(testData, null, 2));
+        }
     </script>
 </body>
 </html>
