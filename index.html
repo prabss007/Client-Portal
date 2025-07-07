@@ -1065,7 +1065,7 @@
 
     <script>
         // IMPORTANT: Update this with your deployed Google Apps Script URL
-        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzmjlJWKUfe9dOhGmGsRfAzSmRQCJWOldvG8DijxsD2hfyrIyHF08-k-KCc6Hmkv17o/exec';
+        const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyapz4cZCF3bw8YFmDPLW9TENwHRASTOPF6pocSGQxQBFeTP-wleQN1-0fcYXcgpOxh/exec';
         
         // State Management
         let currentUser = null;
@@ -1718,6 +1718,235 @@
                 });
             }
         }
+
+        // Add this function to your HTML file to handle image loading errors:
+
+function handleImageError(img, type) {
+    console.error(`Failed to load ${type} image:`, img.src);
+    // Hide the container if image fails to load
+    if (type === 'logo') {
+        document.querySelector('.client-logo-container').style.display = 'none';
+    } else if (type === 'banner') {
+        img.style.display = 'none';
+    }
+}
+
+// Update the createPaidClientView function to handle image loading better:
+
+function createPaidClientView() {
+    const paidView = document.getElementById('paid-client-view');
+    
+    // Debug log to check what URLs we're getting
+    console.log('Client data:', {
+        logoUrl: currentUser.logoUrl,
+        bannerUrl: currentUser.bannerUrl,
+        company: currentUser.company
+    });
+    
+    paidView.innerHTML = `
+        <!-- Client Portal Banner -->
+        <div class="client-portal-banner">
+            ${currentUser.bannerUrl ? 
+                `<img src="${currentUser.bannerUrl}" 
+                     alt="Company Banner" 
+                     onerror="handleImageError(this, 'banner')"
+                     crossorigin="anonymous">` : 
+                ''
+            }
+            <div class="client-portal-banner-overlay">
+                <div class="client-portal-header-content">
+                    ${currentUser.logoUrl ? 
+                        `<div class="client-logo-container">
+                            <img src="${currentUser.logoUrl}" 
+                                 alt="Company Logo" 
+                                 class="client-logo-large"
+                                 onerror="handleImageError(this, 'logo')"
+                                 crossorigin="anonymous">
+                        </div>` : 
+                        ''
+                    }
+                    <div class="client-info-header">
+                        <h1>${currentUser.company}</h1>
+                        <p>Welcome back, ${currentUser.contactName}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="client-portal-nav">
+            <div class="portal-tabs">
+                <button class="tab-btn active" onclick="showTab('documents')">Documents</button>
+                <button class="tab-btn" onclick="showTab('candidates')">Candidate CVs</button>
+                <button class="tab-btn" onclick="showTab('invoice')">Invoice</button>
+            </div>
+            <button class="btn secondary" onclick="logout()">Logout</button>
+        </div>
+        
+        <!-- Rest of the content remains the same -->
+        <div id="documents-tab" class="tab-content active">
+            <div class="documents-section">
+                <h3>Upload Job Requirements</h3>
+                <p style="color: #6b7280; margin-bottom: 20px;">
+                    Upload your job descriptions and requirements. Files are securely stored in Google Drive.
+                </p>
+                <div class="upload-area" onclick="triggerDocUpload()">
+                    <div style="font-size: 3em; color: #9ca3af; margin-bottom: 15px; position: relative; z-index: 1;">📤</div>
+                    <h4 style="position: relative; z-index: 1;">Upload to Google Drive</h4>
+                    <p style="color: #6b7280; position: relative; z-index: 1;">Click here or drag and drop files</p>
+                    <p style="font-size: 0.9em; color: #9ca3af; margin-top: 10px; position: relative; z-index: 1;">
+                        Supported formats: PDF, DOC, DOCX (Max 10MB)
+                    </p>
+                </div>
+                
+                <div class="upload-progress">
+                    <p style="margin-bottom: 10px;">Uploading to Google Drive...</p>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="upload-progress-fill" style="width: 0%;"></div>
+                    </div>
+                </div>
+                
+                <div id="uploaded-docs" style="margin-top: 30px;">
+                    <!-- Uploaded documents will appear here -->
+                </div>
+            </div>
+        </div>
+        
+        <div id="candidates-tab" class="tab-content">
+            <h3>Candidate Database</h3>
+            <p style="color: #6b7280; margin-bottom: 20px;">
+                Browse and download candidate CVs matched for your requirements
+            </p>
+            <div class="cv-grid" id="client-candidates-list">
+                <!-- Candidates will be loaded here -->
+            </div>
+        </div>
+        
+        <div id="invoice-tab" class="tab-content">
+            <div style="max-width: 800px; margin: 0 auto;">
+                <div style="background: #f8fafc; padding: 40px; border-radius: 15px;">
+                    <div style="text-align: center; margin-bottom: 40px;">
+                        <h2>INVOICE</h2>
+                        <p style="color: #6b7280;">Invoice #<span id="invoice-number">INV-001</span></p>
+                        <p style="color: #6b7280;">Date: <span id="invoice-date"></span></p>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-bottom: 40px;">
+                        <div>
+                            <h4 style="color: #6b7280; margin-bottom: 10px;">FROM</h4>
+                            <p><strong>MerlinsGroup</strong></p>
+                            <p>Premium Recruitment Excellence</p>
+                            <p>007prabs@gmail.com</p>
+                        </div>
+                        <div>
+                            <h4 style="color: #6b7280; margin-bottom: 10px;">BILL TO</h4>
+                            <p><strong id="invoice-company">${currentUser.company}</strong></p>
+                            <p id="invoice-contact">${currentUser.contactName}</p>
+                            <p id="invoice-email">${currentUser.email}</p>
+                        </div>
+                    </div>
+                    
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr style="border-bottom: 2px solid #e5e7eb;">
+                                <th style="text-align: left; padding: 15px 0;">Description</th>
+                                <th style="text-align: right; padding: 15px 0;">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style="padding: 20px 0;">Recruitment Services Package</td>
+                                <td style="text-align: right; padding: 20px 0;">£${currentUser.packagePrice}</td>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr style="border-top: 2px solid #e5e7eb;">
+                                <td style="padding: 20px 0; font-weight: bold;">Total</td>
+                                <td style="text-align: right; padding: 20px 0; font-weight: bold;">£${currentUser.packagePrice}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                    
+                    <div style="margin-top: 40px; text-align: center;">
+                        <button class="btn" onclick="window.print()">Print Invoice</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Set invoice details
+    document.getElementById('invoice-date').textContent = new Date().toLocaleDateString();
+    document.getElementById('invoice-number').textContent = `INV-${Date.now().toString().slice(-6)}`;
+    
+    // Setup drag and drop
+    setupDragAndDrop();
+    
+    // Load client data
+    loadClientData();
+}
+
+// Add a debug function to test image URLs:
+function debugImageUrls() {
+    if (!currentUser) {
+        console.log('No user logged in');
+        return;
+    }
+    
+    console.log('=== DEBUGGING IMAGE URLS ===');
+    console.log('Logo URL:', currentUser.logoUrl);
+    console.log('Banner URL:', currentUser.bannerUrl);
+    
+    // Test if images can be loaded
+    if (currentUser.logoUrl) {
+        const testImg = new Image();
+        testImg.onload = () => console.log('✅ Logo loads successfully');
+        testImg.onerror = () => console.log('❌ Logo failed to load');
+        testImg.src = currentUser.logoUrl;
+    }
+    
+    if (currentUser.bannerUrl) {
+        const testImg = new Image();
+        testImg.onload = () => console.log('✅ Banner loads successfully');
+        testImg.onerror = () => console.log('❌ Banner failed to load');
+        testImg.src = currentUser.bannerUrl;
+    }
+}
+
+// Add this CSS to handle image loading states:
+const imageStyles = `
+<style>
+/* Image loading states */
+.client-logo-large {
+    height: 100px;
+    max-width: 200px;
+    object-fit: contain;
+    background: #f3f4f6;
+}
+
+.client-portal-banner img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.8;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+/* Loading placeholder */
+.image-loading {
+    background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%);
+    background-size: 200% 100%;
+    animation: loading 1.5s infinite;
+}
+
+@keyframes loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+</style>
+`;
+
+// Add the styles to the document (add this to your existing styles)
+document.head.insertAdjacentHTML('beforeend', imageStyles);
 
         // Image resizing function
         function resizeImage(file, maxWidth, maxHeight) {
